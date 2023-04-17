@@ -3,6 +3,14 @@ from matplotlib import pyplot as plt
 
 from extras import Cell, Point, get_mesh, get_receivers, draw_mesh
 
+def get_receivers_result(path: str) -> list:
+    receivers = []
+    for f in open(path):
+        buf = [float(attr) for attr in f.split(' ')]
+        receivers.append(Point(buf[0],
+                               buf[1],
+                               buf[2]))
+    return receivers
 
 cells_path = 'cells.dat'
 receivers_path = 'receivers.dat'
@@ -12,6 +20,7 @@ print(mesh)
 
 print(mesh[0].distance(mesh[1]))
 
+# TODO: добавить компоненты py и pz
 # x = []
 # y = []
 receivers_results_path = 'receivers_results.dat'
