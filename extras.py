@@ -22,7 +22,7 @@ class Point:
 class Cell(Point):
     length = 200
     width = 200
-    height = 200
+    height = 100
     I = 1
 
     def __init__(self, x: float, y: float, z: float, px: float):
@@ -74,7 +74,8 @@ def draw_mesh(path: str, mesh: list, receivers):
                          cell.width,
                          cell.height,
                          linewidth=2,
-                         edgecolor='none',
+                         # edgecolor='none',
+                         edgecolor='w',
                          facecolor=f'{1 - cell.px}')
         ax.add_patch(rect)
         ax.annotate(cell.px, (cell.x, cell.z), color=f'{cell.px}')

@@ -25,19 +25,30 @@ mesh = get_mesh(mesh_path)
 receivers = get_receivers(receivers_results_path)
 # L = np.zeros(shape=(len(receivers) * 3, len(mesh) * 3))
 L = np.zeros(shape=(len(receivers), len(mesh) * 3))
+# S = np.zeros(len(receivers) * 3)
 for i, r in enumerate(receivers):
     for j, c in enumerate(mesh):
-        L[i][j*3] = 3 * (r.x - c.x) ** 2 / (r.distance(c) ** 2) - 1
-        L[i][j*3+1] = 3 * (r.x - c.x) * (r.y - c.y) / (r.distance(c) ** 2)
-        L[i][j*3+2] = 3 * (r.x - c.x) * (r.z - c.z) / (r.distance(c) ** 2)
+        L[i][j*3] += 3 * (r.x - c.x) ** 2 / (r.distance(c) ** 2) - 1
+        L[i][j*3+1] += 3 * (r.x - c.x) * (r.y - c.y) / (r.distance(c) ** 2)
+        L[i][j*3+2] += 3 * (r.x - c.x) * (r.z - c.z) / (r.distance(c) ** 2)
+    # S[i*3] = r.bx
 S = [r.bx for r in receivers]
-# print(L)
-# print(S)
+print(f"L = {L}")
+print(f"S = {S}")
+
+# C = np.zeros(shape=(len(receivers), len(mesh) * 3))
+
 
 A = np.matmul(L.transpose(), L)
 b = np.matmul(L.transpose(), S)
-print(A)
-print(b)
+print(f"A = {A}")
+print(f"b = {b}")
 
-p = np.linalg.solve(A,b)
+alfa = 10**-1
+alfa = 1
+ones = np.eye(len(A))
+# print(np.dot(alfa, ones))
+regularizedA = A + np.dot(alfa, ones)
+print(np.linalg.det(regularizedA))
+p = np.linalg.solve(regularizedA, b)
 print(f"p={p}")

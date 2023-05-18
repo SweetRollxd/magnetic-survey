@@ -21,23 +21,26 @@ print(mesh)
 print(mesh[0].distance(mesh[1]))
 
 # TODO: добавить компоненты py и pz
-# x = []
-# y = []
+x = []
+y = []
 receivers_results_path = 'receivers_results.dat'
-# f = open(receivers_results_path, mode="w")
-# for rcv_x in range(-2000, 2000, 50):
-#     receiver = Point(rcv_x, 0, 0)
-#     Bx = 0
-#     for cell in mesh:
-#         Bx += cell.volume() * cell.I / (4 * math.pi * receiver.distance(cell) ** 3) * \
-#               (cell.px * (3 * (receiver.x - cell.x) ** 2) / receiver.distance(cell) ** 2 - 1)
-#     f.write(f"{receiver.x} {receiver.y} {receiver.z} {Bx}\n")
-#     x.append(rcv_x)
-#     y.append(Bx)
-# f.close()
-#
-# plt.plot(x, y, marker="o")
-# plt.savefig('x_component.png')
+f = open(receivers_results_path, mode="w")
+for rcv_x in range(-2000, 2000, 50):
+# for rcv_x in range(-2000, 3000, 1000):
+    receiver = Point(rcv_x, 0, 0)
+
+    Bx = 0
+    for cell in mesh:
+        Bx += cell.volume() * cell.I / (4 * math.pi * receiver.distance(cell) ** 3) * \
+              (cell.px * (3 * (receiver.x - cell.x) ** 2) / receiver.distance(cell) ** 2 - 1)
+        # print(f"rcv_x = {rcv_x}, Bx = {Bx}")
+    f.write(f"{receiver.x} {receiver.y} {receiver.z} {Bx}\n")
+    x.append(rcv_x)
+    y.append(Bx)
+f.close()
+
+plt.plot(x, y, marker="o")
+plt.savefig('x_component.png')
 
 recvs = get_receivers(receivers_results_path)
 print(recvs)
