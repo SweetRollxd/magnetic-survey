@@ -1,4 +1,5 @@
 import math
+import numpy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
@@ -25,23 +26,32 @@ class Cell(Point):
     height = 100
     I = 1
 
-    def __init__(self, x: float, y: float, z: float, px: float):
+    def __init__(self, x: float, y: float, z: float, px: float = 0, py: float = 0, pz: float = 0):
         super().__init__(x, y, z)
         self.px = px
+        self.py = py
+        self.pz = pz
 
     def __repr__(self):
-        return f"Cell({self.x}, {self.y}, {self.z}) with px={self.px}"
+        return f"Cell({self.x}, {self.y}, {self.z}) with px={self.px}, py={self.py}, pz={self.pz}"
 
     def volume(self):
         return self.length * self.width * self.height
+
+
+class Receiver(Point):
+    def __init__(self, x: float, y: float, z: float, bx: float, by: float, bz: float):
+        super().__init__(x, y, z)
+        self.bx = bx
+        self.by = by
+        self.bz = bz
+
 
 def get_receivers(path: str) -> list:
     receivers = []
     for f in open(path):
         buf = [float(attr) for attr in f.split(' ')]
-        receivers.append(Point(buf[0],
-                               buf[1],
-                               buf[2]))
+        receivers.append(Receiver(*buf))
     return receivers
 
 
@@ -49,10 +59,11 @@ def get_mesh(path: str) -> list:
     cells = []
     for f in open(path):
         buf = [float(attr) for attr in f.split(' ')]
-        cells.append(Cell(buf[0],
-                          buf[1],
-                          buf[2],
-                          buf[3]))
+        cells.append(Cell(*buf))
+        # cells.append(Cell(buf[0],
+        #                   buf[1],
+        #                   buf[2],
+        #                   buf[3]))
     return cells
 
 
@@ -68,16 +79,29 @@ def draw_mesh(path: str, mesh: list, receivers):
 
     ax.scatter(x, z)
     ax.axis('equal')
+    # ax.grid(True)
+    ax.set_xticks(numpy.arange(-2000, 2000, 200))
+    ax.set_yticks(numpy.arange(-1000, 200, 100))
+
+    min_px = min(mesh, key=lambda x: x.px).px
+    max_px = max(mesh, key=lambda x: x.px).px
+
+    # TODO: исправить костыль
+    if min_px > 0:
+        min_px = 0
+
+    print(f"Min: {min_px}, max: {max_px}")
     for cell in mesh:
-        print(cell.x, cell.z, cell.width)
+        # print(cell.x, cell.z, cell.width)
+        print(f"px = {cell.px}")
         rect = Rectangle((cell.x - cell.width / 2, cell.z - cell.height / 2),
                          cell.width,
                          cell.height,
                          linewidth=2,
                          # edgecolor='none',
                          edgecolor='w',
-                         facecolor=f'{1 - cell.px}')
+                         facecolor=f'{1 - (cell.px - min_px)/(max_px - min_px)}')
         ax.add_patch(rect)
-        ax.annotate(cell.px, (cell.x, cell.z), color=f'{cell.px}')
-
+        ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=f'{(cell.px - min_px)/(max_px - min_px)}')
+    plt.grid()
     plt.savefig(path)

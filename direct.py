@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 
 from extras import Cell, Point, get_mesh, get_receivers, draw_mesh
 
+
 def get_receivers_result(path: str) -> list:
     receivers = []
     for f in open(path):
@@ -12,13 +13,14 @@ def get_receivers_result(path: str) -> list:
                                buf[2]))
     return receivers
 
+
 cells_path = 'cells.dat'
 receivers_path = 'receivers.dat'
 
 mesh = get_mesh(cells_path)
-print(mesh)
+# print(mesh)
 
-print(mesh[0].distance(mesh[1]))
+# print(mesh[0].distance(mesh[1]))
 
 # TODO: добавить компоненты py и pz
 x = []
@@ -26,15 +28,34 @@ y = []
 receivers_results_path = 'receivers_results.dat'
 f = open(receivers_results_path, mode="w")
 for rcv_x in range(-2000, 2000, 50):
-# for rcv_x in range(-2000, 3000, 1000):
+    # for rcv_x in range(-2000, 3000, 1000):
     receiver = Point(rcv_x, 0, 0)
 
-    Bx = 0
+    Bx, By, Bz = 0, 0, 0
+    # By = 0
+    # B
     for cell in mesh:
-        Bx += cell.volume() * cell.I / (4 * math.pi * receiver.distance(cell) ** 3) * \
-              (cell.px * (3 * (receiver.x - cell.x) ** 2) / receiver.distance(cell) ** 2 - 1)
+        dx = receiver.x - cell.x
+        dy = receiver.y - cell.y
+        dz = receiver.z - cell.z
+        distance = receiver.distance(cell)
+        Bx += cell.volume() * cell.I / (4 * math.pi * distance ** 3) * (
+            cell.px * (3 * dx * dx / distance ** 2 - 1) +
+            cell.py * (3 * dx * dy / distance ** 2) +
+            cell.pz * (3 * dx * dz / distance ** 2)
+        )
+        By += cell.volume() * cell.I / (4 * math.pi * distance ** 3) * (
+            cell.px * (3 * dx * dy / distance ** 2) +
+            cell.py * (3 * dy * dy / distance ** 2 - 1) +
+            cell.pz * (3 * dy * dz / distance ** 2)
+        )
+        Bz += cell.volume() * cell.I / (4 * math.pi * distance ** 3) * (
+            cell.px * (3 * dx * dz / distance ** 2) +
+            cell.py * (3 * dy * dz / distance ** 2) +
+            cell.pz * (3 * dz * dz / distance ** 2 - 1)
+        )
         # print(f"rcv_x = {rcv_x}, Bx = {Bx}")
-    f.write(f"{receiver.x} {receiver.y} {receiver.z} {Bx}\n")
+    f.write(f"{receiver.x} {receiver.y} {receiver.z} {Bx} {By} {Bz}\n")
     x.append(rcv_x)
     y.append(Bx)
 f.close()
