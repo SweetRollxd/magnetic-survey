@@ -14,16 +14,16 @@ def get_receivers_result(path: str) -> list:
     return receivers
 
 
-cells_path = 'cells.dat'
+cells_path = 'cells_1.dat'
 receivers_path = 'receivers.dat'
 
-# mesh = get_mesh(cells_path)
-start_pnt = Point(-100, 0, -100)
-end_pnt = Point(100, 100, -200)
-mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
+mesh = get_mesh(cells_path)
+# start_pnt = Point(-100, -50, -100)
+# end_pnt = Point(100, 50, -200)
+# mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
 for cell in mesh:
     cell.px = 1
-# print(mesh)
+print(mesh)
 
 # print(mesh[0].distance(mesh[1]))
 
@@ -31,7 +31,7 @@ x = []
 y = []
 receivers_results_path = 'receivers_results.dat'
 f = open(receivers_results_path, mode="w")
-for rcv_x in range(-2000, 2000, 50):
+for rcv_x in range(-1000, 1000, 4):
     # for rcv_x in range(-2000, 3000, 1000):
     receiver = Point(rcv_x, 0, 0)
 
@@ -43,17 +43,17 @@ for rcv_x in range(-2000, 2000, 50):
         dy = receiver.y - cell.y
         dz = receiver.z - cell.z
         distance = receiver.distance(cell)
-        Bx += cell.volume() / (4 * math.pi * distance ** 3) * (
+        Bx += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
             cell.px * (3 * dx * dx / distance ** 2 - 1) +
             cell.py * (3 * dx * dy / distance ** 2) +
             cell.pz * (3 * dx * dz / distance ** 2)
         )
-        By += cell.volume() / (4 * math.pi * distance ** 3) * (
+        By += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
             cell.px * (3 * dx * dy / distance ** 2) +
             cell.py * (3 * dy * dy / distance ** 2 - 1) +
             cell.pz * (3 * dy * dz / distance ** 2)
         )
-        Bz += cell.volume() / (4 * math.pi * distance ** 3) * (
+        Bz += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
             cell.px * (3 * dx * dz / distance ** 2) +
             cell.py * (3 * dy * dz / distance ** 2) +
             cell.pz * (3 * dz * dz / distance ** 2 - 1)
@@ -68,6 +68,6 @@ plt.plot(x, y, marker="o")
 plt.savefig('x_component.png')
 
 recvs = get_receivers(receivers_results_path)
-print(recvs)
+# print(recvs)
 
 draw_mesh('mesh.png', mesh=mesh, receivers=recvs)

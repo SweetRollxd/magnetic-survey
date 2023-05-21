@@ -8,21 +8,24 @@ def generate_mesh(point_start: Point,
                   count_z: int = 1):
 
     mesh = []
-    length = (point_end.x - point_start.x) / count_x
-    width = (point_end.y - point_start.y) / count_y
-    height = (point_end.z - point_start.z) / count_z
+    dx = (point_end.x - point_start.x) / count_x
+    dy = (point_end.y - point_start.y) / count_y
+    dz = (point_end.z - point_start.z) / count_z
+    length = abs(dx)
+    width = abs(dy)
+    height = abs(dz)
     x = point_start.x
-    # print(f"length = {length}, width = {width}, height = {height}")
+    print(f"length = {length}, width = {width}, height = {height}")
     for i in range(count_x):
         y = point_start.y
         for j in range(count_y):
             z = point_start.z
             for k in range(count_z):
-                mesh.append(Cell(x + length/2, y + width/2, z + height/2,
+                mesh.append(Cell(x + dx/2, y + dy/2, z + dz/2,
                                  length, width, height))
-                z += height
-            y += width
-        x += length
+                z += dz
+            y += dy
+        x += dx
 
     return mesh
 

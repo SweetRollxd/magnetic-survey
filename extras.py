@@ -65,7 +65,7 @@ def get_mesh(path: str) -> list:
     cells = []
     for f in open(path):
         buf = [float(attr) for attr in f.split(' ')]
-        cells.append(Cell(*buf, 200, 200, 100))
+        cells.append(Cell(*buf, 100, 100, 50))
         # cells.append(Cell(buf[0],
         #                   buf[1],
         #                   buf[2],
@@ -105,16 +105,18 @@ def draw_mesh(path: str, mesh: list, receivers: list = None):
     print(f"Min: {min_px}, max: {max_px}")
     for cell in mesh:
         # print(cell.x, cell.z, cell.width)
-        print(f"px = {cell.px}")
+        # print(f"px = {cell.px}")
+        normalized_px = (cell.px - min_px)/(max_px - min_px)
+        text_color = 'w' if normalized_px >= 0.5 else 'k'
         rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
                          cell.length,
                          cell.height,
                          linewidth=1,
                          # edgecolor='none',
                          edgecolor='k',
-                         facecolor=f'{1 - (cell.px - min_px)/(max_px - min_px)}')
+                         facecolor=f'{1 - normalized_px}')
         ax.add_patch(rect)
-        ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=f'{(cell.px - min_px)/(max_px - min_px)}')
+        ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
     # plt.grid()
     plt.ylim([-400, 100])
     plt.savefig(path)
