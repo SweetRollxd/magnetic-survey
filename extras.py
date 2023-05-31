@@ -29,7 +29,7 @@ class Cell(Point):
     def __init__(self,
                  x: float, y: float, z: float,
                  length, width, height,
-                 px: float = 0, py: float = 0, pz: float = 0,):
+                 px: float = 0, py: float = 0, pz: float = 0, ):
         super().__init__(x, y, z)
         self.length = length
         self.width = width
@@ -46,12 +46,14 @@ class Cell(Point):
 
 
 class Receiver(Point):
-    def __init__(self, x: float, y: float, z: float, bx: float, by: float, bz: float):
+    def __init__(self, x: float, y: float, z: float, bx: float = 0, by: float = 0, bz: float = 0):
         super().__init__(x, y, z)
         self.bx = bx
         self.by = by
         self.bz = bz
 
+    def __repr__(self):
+        return f"Receiver ({self.x}, {self.z}) with bx={self.bx}, by={self.by}, bz={self.bz}"
 
 def get_receivers(path: str) -> list:
     receivers = []
@@ -75,7 +77,6 @@ def get_mesh(path: str) -> list:
 
 # TODO: рисование сетки по координатам узлов ячейки
 def draw_mesh(path: str, mesh: list, receivers: list = None):
-
     if receivers is None:
         receivers = []
     fig, ax = plt.subplots(figsize=(16.0, 4.8))
@@ -106,7 +107,7 @@ def draw_mesh(path: str, mesh: list, receivers: list = None):
     for cell in mesh:
         # print(cell.x, cell.z, cell.width)
         # print(f"px = {cell.px}")
-        normalized_px = (cell.px - min_px)/(max_px - min_px)
+        normalized_px = (cell.px - min_px) / (max_px - min_px)
         text_color = 'w' if normalized_px >= 0.5 else 'k'
         rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
                          cell.length,
@@ -120,3 +121,33 @@ def draw_mesh(path: str, mesh: list, receivers: list = None):
     # plt.grid()
     plt.ylim([-400, 100])
     plt.savefig(path)
+
+
+def calculate_receivers(mesh: list, receivers: list):
+    for receiver in receivers:
+        Bx, By, Bz = 0, 0, 0
+        # By = 0
+        # B
+        for cell in mesh:
+            dx = receiver.x - cell.x
+            dy = receiver.y - cell.y
+            dz = receiver.z - cell.z
+            distance = receiver.distance(cell)
+            Bx += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
+                    cell.px * (3 * dx * dx / distance ** 2 - 1) +
+                    cell.py * (3 * dx * dy / distance ** 2) +
+                    cell.pz * (3 * dx * dz / distance ** 2)
+            )
+            By += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
+                    cell.px * (3 * dx * dy / distance ** 2) +
+                    cell.py * (3 * dy * dy / distance ** 2 - 1) +
+                    cell.pz * (3 * dy * dz / distance ** 2)
+            )
+            Bz += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
+                    cell.px * (3 * dx * dz / distance ** 2) +
+                    cell.py * (3 * dy * dz / distance ** 2) +
+                    cell.pz * (3 * dz * dz / distance ** 2 - 1)
+            )
+        receiver.bx = Bx
+        receiver.by = By
+        receiver.bz = Bz

@@ -7,9 +7,10 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from extras import Point, get_receivers, draw_mesh
+from extras import Point, Receiver, get_receivers, draw_mesh, calculate_receivers
 from generator import generate_mesh
 
+import constants
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -18,16 +19,18 @@ class MainWindow(QMainWindow):
         loadUi("design/main.ui", self)
         self.drawMeshBtn.clicked.connect(self.on_draw_btn_click)
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
+        self.directCalculateBtn.clicked.connect(self.on_direct_calculate_btn_click)
 
         self.figure = plt.figure(figsize=(16.0, 4.8))
         self.canvas = FigureCanvas(self.figure)
         self.tab.layout().addWidget(self.canvas)
 
-        self.canvas.mpl_connect('button_press_event', self.on_plot_click)
+        self.canvas.mpl_connect('button_press_event', self.on_mesh_click)
         # chart = Canvas(self)
         # self.setCentralWidget(chart)
         # chart = Canvas(self.meshWidget)
         self.mesh = []
+        self.receivers = []
 
     def on_draw_btn_click(self):
         # start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
@@ -50,22 +53,26 @@ class MainWindow(QMainWindow):
         # chart.draw()
 
     def on_add_receivers_btn_click(self):
-        # print(self.)
-        recvs = []
-        cur = self.rcvXStartSB.value()
-        step = (self.rcvXEndSB.value() - self.rcvXStartSB.value()) / self.rcvCntSB.value()
-        while cur <= self.rcvXEndSB.value():
-            recvs.append(Point(cur, 0, 0))
-            cur += step
+        # self.receivers = []
+        # cur = self.rcvXStartSB.value()
+        # step = (self.rcvXEndSB.value() - self.rcvXStartSB.value()) / self.rcvCntSB.value()
+        # while cur <= self.rcvXEndSB.value():
+        #     self.receivers.append(Receiver(cur, 0, 0))
+        #     cur += step
 
-        # receivers_results_path = 'receivers_results.dat'
-        # recvs = get_receivers(receivers_results_path)
-        print(recvs)
-        self.__draw_receivers(recvs)
+        receivers_results_path = 'receivers_results.dat'
+        self.receivers = get_receivers(receivers_results_path)
+        # print(self.receivers)
+        self.__draw_receivers(self.receivers)
+
+    def on_direct_calculate_btn_click(self):
+        calculate_receivers(self.mesh, self.receivers)
+        # print(self.receivers)
+        self.__draw_plot(self.receivers)
 
     def __draw_mesh(self):
         self.figure.clear()
-        ax = self.figure.add_subplot(111)
+        ax = self.figure.add_subplot(211)
 
         ax.axis('equal')
         ax.axhline(y=0, color='k', linewidth=1)
@@ -111,7 +118,7 @@ class MainWindow(QMainWindow):
             error_dialog.showMessage('Не построен график')
             # return
         ax = axes[0]
-        print(f"Lines: {ax.scatter}")
+        # print(f"Lines: {ax.scatter}")
         x = []
         z = []
         for r in receivers:
@@ -121,7 +128,18 @@ class MainWindow(QMainWindow):
         ax.scatter(x, z)
         self.canvas.draw()
 
-    def on_plot_click(self, event):
+    def __draw_plot(self, receivers, axis = constants.X_AXIS):
+        # self.figure.clear()
+        ax = self.figure.add_subplot(212)
+        x = [receiver.x for receiver in receivers]
+        bx = [receiver.bx for receiver in receivers]
+        # print(x, bx)
+        ax.plot(x, bx, marker="o")
+        ax.grid()
+        self.canvas.draw()
+
+
+    def on_mesh_click(self, event):
         # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
         #       ('double' if event.dblclick else 'single', event.button,
         #        event.x, event.y, event.xdata, event.ydata))

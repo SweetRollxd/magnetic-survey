@@ -209,7 +209,11 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
-               <widget class="QSpinBox" name="rcvCntSB"/>
+               <widget class="QSpinBox" name="rcvCntSB">
+                <property name="maximum">
+                 <number>10000</number>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="addReceiversBtn">
