@@ -17,10 +17,10 @@ def get_receivers_result(path: str) -> list:
 cells_path = 'cells_1.dat'
 receivers_path = 'receivers.dat'
 
-mesh = get_mesh(cells_path)
-# start_pnt = Point(-100, -50, -100)
-# end_pnt = Point(100, 50, -200)
-# mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
+# mesh = get_mesh(cells_path)
+start_pnt = Point(-100, -50, -100)
+end_pnt = Point(100, 50, -200)
+mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
 for cell in mesh:
     cell.px = 1
 print(mesh)
@@ -65,7 +65,9 @@ for rcv_x in range(-1000, 1000, 4):
 f.close()
 
 plt.plot(x, y, marker="o")
+plt.grid()
 plt.savefig('x_component.png')
+
 
 recvs = get_receivers(receivers_results_path)
 # print(recvs)
