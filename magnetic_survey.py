@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from extras import Point, get_receivers, draw_mesh
@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Magnetic Survey")
         loadUi("design/main.ui", self)
         self.drawMeshBtn.clicked.connect(self.on_draw_btn_click)
+        self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
 
         self.figure = plt.figure(figsize=(16.0, 4.8))
         self.canvas = FigureCanvas(self.figure)
@@ -40,35 +41,32 @@ class MainWindow(QMainWindow):
 
         print(self.mesh)
         self.__draw_mesh()
+
+        if not self.addReceiversBtn.isEnabled():
+            self.addReceiversBtn.setEnabled(True)
         # chart = MeshPlot(self.meshWidget, mesh)
         # chart.sh
         # chart = Canvas(self.meshWidget)
         # chart.draw()
 
+    def on_add_receivers_btn_click(self):
+        # print(self.)
+        recvs = []
+        cur = self.rcvXStartSB.value()
+        step = (self.rcvXEndSB.value() - self.rcvXStartSB.value()) / self.rcvCntSB.value()
+        while cur <= self.rcvXEndSB.value():
+            recvs.append(Point(cur, 0, 0))
+            cur += step
+
+        # receivers_results_path = 'receivers_results.dat'
+        # recvs = get_receivers(receivers_results_path)
+        print(recvs)
+        self.__draw_receivers(recvs)
+
     def __draw_mesh(self):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
 
-        # t = np.arange(0.0, 2.0, 0.01)
-        # s = 1 + np.sin(2 * np.pi * t)
-        # ax.plot(t, s)
-        #
-        # ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-        #             title='About as simple as it gets, folks')
-        # ax.grid()
-        #
-        # self.canvas.draw()
-
-        x = []
-        z = []
-        # if receivers is None:
-        receivers = []
-
-        for r in receivers:
-            x.append(r.x)
-            z.append(r.z)
-
-        ax.scatter(x, z)
         ax.axis('equal')
         ax.axhline(y=0, color='k', linewidth=1)
         ax.axvline(x=0, color='k', linewidth=1)
@@ -103,6 +101,24 @@ class MainWindow(QMainWindow):
             ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
 
         ax.plot()
+        self.canvas.draw()
+
+    def __draw_receivers(self, receivers: list):
+        axes = self.figure.get_axes()
+        if not axes:
+            # msg = QMessageBox().Warning
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Не построен график')
+            # return
+        ax = axes[0]
+        print(f"Lines: {ax.scatter}")
+        x = []
+        z = []
+        for r in receivers:
+            x.append(r.x)
+            z.append(r.z)
+
+        ax.scatter(x, z)
         self.canvas.draw()
 
     def on_plot_click(self, event):
@@ -179,25 +195,6 @@ class MeshPlot(FigureCanvas):
             self.ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
             # self.ax.
         self.ax.plot()
-
-
-class Canvas(FigureCanvas):
-    def __init__(self, parent):
-        fig, self.ax = plt.subplots(figsize=(16.0, 4.8))
-        super().__init__(fig)
-        self.setParent(parent)
-
-        """ 
-        Matplotlib Script
-        """
-        t = np.arange(0.0, 2.0, 0.01)
-        s = 1 + np.sin(2 * np.pi * t)
-
-        self.ax.plot(t, s)
-
-        self.ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-                    title='About as simple as it gets, folks')
-        self.ax.grid()
 
 
 class DensityInputDialog(QDialog):
