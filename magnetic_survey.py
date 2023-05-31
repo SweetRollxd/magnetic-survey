@@ -29,14 +29,12 @@ class MainWindow(QMainWindow):
         self.mesh = []
 
     def on_draw_btn_click(self):
-        start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
-        end_pnt = Point(self.xEndSB.value(), self.yEndSB.value(), self.zEndSB.value())
-        self.mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
-        # for cell in mesh:
-        #     cell.px = 1
-        # start_pnt = Point(-100, -50, -100)
-        # end_pnt = Point(100, 50, -200)
-        # self.mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
+        # start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
+        # end_pnt = Point(self.xEndSB.value(), self.yEndSB.value(), self.zEndSB.value())
+        # self.mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
+        start_pnt = Point(-100, -50, -100)
+        end_pnt = Point(100, 50, -200)
+        self.mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
         # for cell in self.mesh:
         #     cell.px = 1
 
@@ -114,16 +112,23 @@ class MainWindow(QMainWindow):
         ax = self.figure.get_axes()[0]
         for i, patch in enumerate(ax.patches):
             if patch.contains(event)[0]:
-                print(self.mesh[i])
-                dialog = DensityInputDialog(self.mesh[i])
-                if dialog.exec_():
-                    self.mesh[i].px, self.mesh[i].py, self.mesh[i].pz = dialog.get_inputs()
+                # если нажата ПКМ
+                if event.button == 3:
+                    # и это не последняя ячейка
+                    if len(self.mesh) > 1:
+                        # то удаляем ячейку
+                        del self.mesh[i]
+                    else:
+                        return
+                # при остальных нажатиях редактируем значение плотности
+                else:
                     print(self.mesh[i])
-                    # print(dialog.get_inputs())
-                # patch.remove()
-                # print(f"i: {i}, patch: {patch}")
-        # self.canvas.draw()
-        self.__draw_mesh()
+                    dialog = DensityInputDialog(self.mesh[i])
+                    if dialog.exec_():
+                        self.mesh[i].px, self.mesh[i].py, self.mesh[i].pz = dialog.get_inputs()
+                        print(self.mesh[i])
+
+                self.__draw_mesh()
 
 
 class MeshPlot(FigureCanvas):
