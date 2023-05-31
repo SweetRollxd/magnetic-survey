@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from extras import Point, get_receivers, draw_mesh
@@ -20,30 +20,34 @@ class MainWindow(QMainWindow):
 
         self.figure = plt.figure(figsize=(16.0, 4.8))
         self.canvas = FigureCanvas(self.figure)
-        self.centralWidget().layout().addWidget(self.canvas)
+        self.tab.layout().addWidget(self.canvas)
+
+        self.canvas.mpl_connect('button_press_event', self.on_plot_click)
         # chart = Canvas(self)
         # self.setCentralWidget(chart)
         # chart = Canvas(self.meshWidget)
+        self.mesh = []
 
     def on_draw_btn_click(self):
         start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
         end_pnt = Point(self.xEndSB.value(), self.yEndSB.value(), self.zEndSB.value())
-        mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
+        self.mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
         # for cell in mesh:
         #     cell.px = 1
         # start_pnt = Point(-100, -50, -100)
         # end_pnt = Point(100, 50, -200)
-        # mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
-        # for cell in mesh:
+        # self.mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
+        # for cell in self.mesh:
         #     cell.px = 1
 
-        print(mesh)
-
+        print(self.mesh)
+        self.__draw_mesh()
         # chart = MeshPlot(self.meshWidget, mesh)
         # chart.sh
         # chart = Canvas(self.meshWidget)
         # chart.draw()
 
+    def __draw_mesh(self):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
 
@@ -76,8 +80,8 @@ class MainWindow(QMainWindow):
 
         # ax.set_ylim([-400, 100])
 
-        min_px = min(mesh, key=lambda cell: cell.px).px
-        max_px = max(mesh, key=lambda cell: cell.px).px
+        min_px = min(self.mesh, key=lambda cell: cell.px).px
+        max_px = max(self.mesh, key=lambda cell: cell.px).px
 
         # TODO: исправить костыль
         if min_px > 0:
@@ -85,7 +89,7 @@ class MainWindow(QMainWindow):
         if min_px == max_px:
             max_px += min_px + 1
         print(f"Min: {min_px}, max: {max_px}")
-        for cell in mesh:
+        for cell in self.mesh:
             # print(cell.x, cell.z, cell.width)
             # print(f"px = {cell.px}")
             normalized_px = (cell.px - min_px) / (max_px - min_px)
@@ -102,6 +106,24 @@ class MainWindow(QMainWindow):
 
         ax.plot()
         self.canvas.draw()
+
+    def on_plot_click(self, event):
+        # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+        #       ('double' if event.dblclick else 'single', event.button,
+        #        event.x, event.y, event.xdata, event.ydata))
+        ax = self.figure.get_axes()[0]
+        for i, patch in enumerate(ax.patches):
+            if patch.contains(event)[0]:
+                print(self.mesh[i])
+                dialog = DensityInputDialog(self.mesh[i])
+                if dialog.exec_():
+                    self.mesh[i].px, self.mesh[i].py, self.mesh[i].pz = dialog.get_inputs()
+                    print(self.mesh[i])
+                    # print(dialog.get_inputs())
+                # patch.remove()
+                # print(f"i: {i}, patch: {patch}")
+        # self.canvas.draw()
+        self.__draw_mesh()
 
 
 class MeshPlot(FigureCanvas):
@@ -150,7 +172,7 @@ class MeshPlot(FigureCanvas):
                              facecolor=f'{1 - normalized_px}')
             self.ax.add_patch(rect)
             self.ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
-
+            # self.ax.
         self.ax.plot()
 
 
@@ -173,17 +195,20 @@ class Canvas(FigureCanvas):
         self.ax.grid()
 
 
-class AppDemo(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.resize(1600, 800)
+class DensityInputDialog(QDialog):
+    def __init__(self, cell, parent=None):
+        super().__init__(parent)
+        loadUi("design/density_input_dialog.ui", self)
 
-        chart = Canvas(self)
+        self.pxSB.setValue(cell.px)
+        self.pySB.setValue(cell.py)
+        self.pzSB.setValue(cell.pz)
+
+    def get_inputs(self):
+        return self.pxSB.value(), self.pySB.value(), self.pzSB.value()
 
 
 app = QApplication(sys.argv)
-# demo = AppDemo()
-# demo.show()
 window = MainWindow()
 window.show()
 sys.exit(app.exec_())
