@@ -1,4 +1,4 @@
-from extras import Point, Cell, draw_mesh
+from extras import Point, Cell, Receiver, draw_mesh
 
 
 def generate_mesh(point_start: Point,
@@ -8,6 +8,8 @@ def generate_mesh(point_start: Point,
                   count_z: int = 1):
 
     mesh = []
+    if count_x == 0 or count_y == 0 or count_z == 0:
+        raise ValueError("Cell count equals 0")
     dx = (point_end.x - point_start.x) / count_x
     dy = (point_end.y - point_start.y) / count_y
     dz = (point_end.z - point_start.z) / count_z
@@ -28,6 +30,19 @@ def generate_mesh(point_start: Point,
         x += dx
 
     return mesh
+
+
+def generate_receivers(x_start: float, x_end: float, count: int):
+    if count == 0:
+        raise ValueError("Receivers count equals 0")
+    receivers = []
+    x = x_start
+
+    dx = (x_end - x_start) / count
+    for i in range(count):
+        receivers.append(Receiver(x, 0, 0))
+        x += dx
+    return receivers
 
 
 if __name__ == '__main__':

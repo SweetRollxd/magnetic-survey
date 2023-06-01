@@ -24,259 +24,285 @@
        <attribute name="title">
         <string>Прямая задача</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
+       <layout class="QVBoxLayout" name="verticalLayout_14">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+         <widget class="QSplitter" name="splitter">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <widget class="QWidget" name="verticalLayoutWidget">
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>X</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>X</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Y</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_3">
+                    <property name="text">
+                     <string>Z</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout">
+                  <item>
+                   <widget class="QDoubleSpinBox" name="xStartSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="yStartSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="zStartSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <item>
+                   <widget class="QDoubleSpinBox" name="xEndSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="yEndSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="zEndSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_5">
+                  <item>
+                   <widget class="QSpinBox" name="xCntSB"/>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="yCntSB"/>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="zCntSB"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_6">
+                  <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Minimum</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="drawMeshBtn">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Построить сетку</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Y</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Z</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout">
-              <item>
-               <widget class="QDoubleSpinBox" name="xStartSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="yStartSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="zStartSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QDoubleSpinBox" name="xEndSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="yEndSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="zEndSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
-              <item>
-               <widget class="QSpinBox" name="xCntSB"/>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="yCntSB"/>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="zCntSB"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <spacer name="verticalSpacer">
+               <spacer name="horizontalSpacer">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Horizontal</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>20</width>
-                  <height>40</height>
+                  <width>40</width>
+                  <height>20</height>
                  </size>
                 </property>
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="drawMeshBtn">
+               <layout class="QVBoxLayout" name="verticalLayout_8">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                  <item>
+                   <widget class="QDoubleSpinBox" name="rcvXStartSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="rcvXEndSB">
+                    <property name="minimum">
+                     <double>-10000.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <item>
+                   <widget class="QSpinBox" name="rcvCntSB">
+                    <property name="maximum">
+                     <number>10000</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="addReceiversBtn">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="text">
+                     <string>Добавить приемники</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="drawPlotCheckbox">
+                <property name="text">
+                 <string>Рисовать график</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="directCalculateBtn">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Построить сетку</string>
+                 <string>Вычислить</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
            </layout>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_8">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item>
-               <widget class="QDoubleSpinBox" name="rcvXStartSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="rcvXEndSB">
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QSpinBox" name="rcvCntSB">
-                <property name="maximum">
-                 <number>10000</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="addReceiversBtn">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Добавить приемники</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="drawPlotCheckbox">
-            <property name="text">
-             <string>Рисовать график</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="directCalculateBtn">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Вычислить</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QWidget" name="meshWidget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
-          </property>
+          </widget>
+          <widget class="QWidget" name="verticalLayoutWidget_2">
+           <layout class="QVBoxLayout" name="meshLayout"/>
+          </widget>
+          <widget class="QWidget" name="verticalLayoutWidget_3">
+           <layout class="QVBoxLayout" name="plotLayout"/>
+          </widget>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
