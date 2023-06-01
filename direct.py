@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from extras import Cell, Point, get_mesh, get_receivers, draw_mesh
 from generator import generate_mesh
 
+
 def get_receivers_result(path: str) -> list:
     receivers = []
     for f in open(path):
@@ -14,7 +15,7 @@ def get_receivers_result(path: str) -> list:
     return receivers
 
 
-cells_path = 'cells_1.mes'
+cells_path = 'meshes/cells_1.mes'
 receivers_path = 'receivers.dat'
 
 # mesh = get_mesh(cells_path)
