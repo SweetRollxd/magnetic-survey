@@ -22,12 +22,12 @@ class MainWindow(QMainWindow):
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.directCalculateBtn.clicked.connect(self.on_direct_calculate_btn_click)
 
-        self.mesh_figure = plt.figure(figsize=(16.0, 4.8))
+        self.mesh_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
         self.mesh_canvas = FigureCanvas(self.mesh_figure)
 
-        self.plot_figure = plt.figure(figsize=(16.0, 4.8))
+        self.plot_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
         self.plot_canvas = FigureCanvas(self.plot_figure)
-        # self.tab.layout().addWidget(self.canvas)
+
         self.meshLayout.addWidget(self.mesh_canvas)
         self.plotLayout.addWidget(self.plot_canvas)
         # mesh_layout = QVBoxLayout()
@@ -43,28 +43,25 @@ class MainWindow(QMainWindow):
 
     def on_draw_btn_click(self):
         try:
-            start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
-            end_pnt = Point(self.xEndSB.value(), self.yEndSB.value(), self.zEndSB.value())
-            self.mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
-            # start_pnt = Point(-100, -50, -100)
-            # end_pnt = Point(100, 50, -200)
-            # self.mesh = generate_mesh(start_pnt, end_pnt, 2, 1, 2)
+
+            if self.xCntSB.value() == 0 or self.yCntSB.value() == 0 or self.zCntSB.value() == 0:
+                start_pnt = Point(-500, -50, 0)
+                end_pnt = Point(400, 50, -300)
+                self.mesh = generate_mesh(start_pnt, end_pnt, 9, 1, 6)
+            else:
+                start_pnt = Point(self.xStartSB.value(), self.yStartSB.value(), self.zStartSB.value())
+                end_pnt = Point(self.xEndSB.value(), self.yEndSB.value(), self.zEndSB.value())
+                self.mesh = generate_mesh(start_pnt, end_pnt, self.xCntSB.value(), self.yCntSB.value(), self.zCntSB.value())
+
             # for cell in self.mesh:
             #     cell.px = 1
 
             print(self.mesh)
             self.__draw_mesh()
-
             if not self.addReceiversBtn.isEnabled():
                 self.addReceiversBtn.setEnabled(True)
-            # chart = MeshPlot(self.meshWidget, mesh)
-            # chart.sh
-            # chart = Canvas(self.meshWidget)
-            # chart.draw()
 
         except ValueError as e:
-            # error_dialog = QErrorMessage()
-            # error_dialog.showMessage('Не построен график')
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Неверное значение")
@@ -81,6 +78,7 @@ class MainWindow(QMainWindow):
             return
         ax = axes[0]
         for i, patch in enumerate(ax.patches):
+            print(patch)
             if patch.contains(event)[0]:
                 # если нажата ПКМ
                 if event.button == 3:
@@ -88,6 +86,7 @@ class MainWindow(QMainWindow):
                     if len(self.mesh) > 1:
                         # то удаляем ячейку
                         del self.mesh[i]
+                        break
                     else:
                         return
                 # при остальных нажатиях редактируем значение плотности
@@ -97,40 +96,41 @@ class MainWindow(QMainWindow):
                     if dialog.exec_():
                         self.mesh[i].px, self.mesh[i].py, self.mesh[i].pz = dialog.get_inputs()
                         print(self.mesh[i])
+                        break
+                    return
 
-                self.__draw_mesh()
+        self.__draw_mesh()
 
     def on_add_receivers_btn_click(self):
-        self.receivers = generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
-        # cur =
-        # step = (self.rcvXEndSB.value() - self.rcvXStartSB.value()) / self.rcvCntSB.value()
-        # while cur <= self.rcvXEndSB.value():
-        #     self.receivers.append(Receiver(cur, 0, 0))
-        #     cur += step
+        # self.receivers = generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
+        if self.rcvCntSB.value() == 0:
+            self.receivers = generate_receivers(-600, 600, 20)
+        else:
+            self.receivers = generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
 
-        # receivers_results_path = 'receivers_results.dat'
-        # self.receivers = get_receivers(receivers_results_path)
-        # print(self.receivers)
-        self.__draw_receivers(self.receivers)
+        self.__draw_mesh()
+
+        if not self.directCalculateBtn.isEnabled() and len(self.mesh_figure.get_axes()):
+            self.directCalculateBtn.setEnabled(True)
 
     def on_direct_calculate_btn_click(self):
         calculate_receivers(self.mesh, self.receivers)
-        # print(self.receivers)
         self.__draw_plot(self.receivers)
 
     def __draw_mesh(self):
         self.mesh_figure.clear()
         ax = self.mesh_figure.add_subplot(111)
+        ax.set_title("Сетка")
 
         ax.axis('equal')
         ax.axhline(y=0, color='k', linewidth=1)
         ax.axvline(x=0, color='k', linewidth=1)
         ax.grid(True)
+        ax.set_axisbelow(True)
         # ax.set_xticks(numpy.arange(-2000, 2000, 200))
         # ax.set_yticks(numpy.arange(-1000, 200, 100))
 
         # ax.set_ylim([-400, 100])
-        ax.set_axisbelow(True)
 
         min_px = min(self.mesh, key=lambda cell: cell.px).px
         max_px = max(self.mesh, key=lambda cell: cell.px).px
@@ -189,11 +189,14 @@ class MainWindow(QMainWindow):
     def __draw_plot(self, receivers, axis = constants.X_AXIS):
         self.plot_figure.clear()
         ax = self.plot_figure.add_subplot(111)
+        ax.set_title("X-компонента магнитного поля B")
         x = [receiver.x for receiver in receivers]
         bx = [receiver.bx for receiver in receivers]
         # print(x, bx)
         ax.plot(x, bx, marker="o")
         ax.grid()
+        # print(self.mesh_figure.get_axes()[0].get_xlim)
+        ax.set_xlim(self.mesh_figure.get_axes()[0].get_xlim())
         self.plot_canvas.draw()
 
 
