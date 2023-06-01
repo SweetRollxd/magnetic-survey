@@ -4,10 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage, QFileDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from extras import Point, Receiver, get_receivers, draw_mesh, calculate_receivers
+import extras
+from extras import Point, Receiver
+# from extras import Point, Receiver, get_receivers, draw_mesh, calculate_receivers
 from generator import generate_mesh, generate_receivers
 
 import constants
@@ -21,6 +23,9 @@ class MainWindow(QMainWindow):
         self.drawMeshBtn.clicked.connect(self.on_draw_btn_click)
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.directCalculateBtn.clicked.connect(self.on_direct_calculate_btn_click)
+        self.clearMeshBtn.clicked.connect(self.on_clear_mesh_btn_click)
+
+        self.openMeshAction.triggered.connect(self.on_open_mesh_action_click)
 
         self.mesh_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
         self.mesh_canvas = FigureCanvas(self.mesh_figure)
@@ -58,8 +63,8 @@ class MainWindow(QMainWindow):
 
             print(self.mesh)
             self.__draw_mesh()
-            if not self.addReceiversBtn.isEnabled():
-                self.addReceiversBtn.setEnabled(True)
+            # if not self.addReceiversBtn.isEnabled():
+            #     self.addReceiversBtn.setEnabled(True)
 
         except ValueError as e:
             msg = QMessageBox()
@@ -110,14 +115,46 @@ class MainWindow(QMainWindow):
 
         self.__draw_mesh()
 
-        if not self.directCalculateBtn.isEnabled() and len(self.mesh_figure.get_axes()):
-            self.directCalculateBtn.setEnabled(True)
+        # if not self.directCalculateBtn.isEnabled() and len(self.mesh_figure.get_axes()):
+        #     self.directCalculateBtn.setEnabled(True)
+
+    def on_clear_mesh_btn_click(self):
+        self.mesh_figure.clear()
+        self.plot_figure.clear()
+        self.mesh = []
+        self.receivers = []
+        self.plot_canvas.draw()
+        self.mesh_canvas.draw()
+
+    def on_open_mesh_action_click(self):
+        fname = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./", ".mes (*.mes)")
+        if fname[0] != '':
+            self.mesh = extras.get_mesh(fname[0])
+            # self.xStartSB.setValue(self.mesh[0].x - self.mesh[0].length/2)
+            # self.xEndSB.setValue(self.mesh[-1].x - self.mesh[0].length / 2)
+            # self.yStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
+            # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
+            # self.zStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
+            # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
+        # with open(fname, 'r') as f:
+        #     f.re
+        self.__draw_mesh()
+        print(self.mesh)
 
     def on_direct_calculate_btn_click(self):
-        calculate_receivers(self.mesh, self.receivers)
+        extras.calculate_receivers(self.mesh, self.receivers)
         self.__draw_plot(self.receivers)
 
     def __draw_mesh(self):
+        if len(self.mesh) == 0:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Нет сетки")
+            msg.setInformativeText(f'Не была введена или сгенерирована сетка')
+            msg.setWindowTitle("Ошибка")
+            msg.exec_()
+            return
+
         self.mesh_figure.clear()
         ax = self.mesh_figure.add_subplot(111)
         ax.set_title("Сетка")

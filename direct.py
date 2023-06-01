@@ -14,7 +14,7 @@ def get_receivers_result(path: str) -> list:
     return receivers
 
 
-cells_path = 'cells_1.dat'
+cells_path = 'cells_1.mes'
 receivers_path = 'receivers.dat'
 
 # mesh = get_mesh(cells_path)

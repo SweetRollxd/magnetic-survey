@@ -55,6 +55,7 @@ class Receiver(Point):
     def __repr__(self):
         return f"Receiver ({self.x}, {self.z}) with bx={self.bx}, by={self.by}, bz={self.bz}"
 
+
 def get_receivers(path: str) -> list:
     receivers = []
     for f in open(path):
@@ -65,9 +66,19 @@ def get_receivers(path: str) -> list:
 
 def get_mesh(path: str) -> list:
     cells = []
-    for f in open(path):
-        buf = [float(attr) for attr in f.split(' ')]
-        cells.append(Cell(*buf, 100, 100, 50))
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        length, width, height = lines[0].split(' ')
+        cells = [Cell(float(attr[0]),
+                      float(attr[1]),
+                      float(attr[2]),
+                      float(length),
+                      float(width),
+                      float(height)) for attr in [line.split(' ') for line in lines[1:]]]
+        # cells
+    # for f in open(path):
+    #     buf = [float(attr) for attr in f.split(' ')]
+    #     cells.append(Cell(*buf, 100, 100, 50))
         # cells.append(Cell(buf[0],
         #                   buf[1],
         #                   buf[2],
