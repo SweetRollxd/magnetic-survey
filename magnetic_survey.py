@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.directCalculateBtn.clicked.connect(self.on_direct_calculate_btn_click)
         self.clearMeshBtn.clicked.connect(self.on_clear_mesh_btn_click)
+        self.saveMeshBtn.clicked.connect(self.on_save_mesh_btn_click)
 
         self.openMeshAction.triggered.connect(self.on_open_mesh_action_click)
 
@@ -40,9 +41,7 @@ class MainWindow(QMainWindow):
         # self.splitter.addWidget(self.canvas)
 
         self.mesh_canvas.mpl_connect('button_press_event', self.on_mesh_click)
-        # chart = Canvas(self)
-        # self.setCentralWidget(chart)
-        # chart = Canvas(self.meshWidget)
+
         self.mesh = []
         self.receivers = []
 
@@ -126,18 +125,27 @@ class MainWindow(QMainWindow):
         self.plot_canvas.draw()
         self.mesh_canvas.draw()
 
+    def on_save_mesh_btn_click(self):
+        fname, _ = QFileDialog.getSaveFileName(self, "Выберите расположение файла", "./", ".mes (*.mes)")
+        print(fname)
+        if fname != '':
+            with open(fname, 'w') as f:
+                f.write(" ".join(map(str, (self.mesh[0].length, self.mesh[0].width, self.mesh[0].height, '\n'))))
+                for cell in self.mesh:
+                    f.write(" ".join(map(str, (cell.x, cell.y, cell.z, '\n'))))
+
+
     def on_open_mesh_action_click(self):
-        fname = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./", ".mes (*.mes)")
-        if fname[0] != '':
-            self.mesh = extras.get_mesh(fname[0])
+        fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./", ".mes (*.mes)")
+        print(fname)
+        if fname:
+            self.mesh = extras.get_mesh(fname)
             # self.xStartSB.setValue(self.mesh[0].x - self.mesh[0].length/2)
             # self.xEndSB.setValue(self.mesh[-1].x - self.mesh[0].length / 2)
             # self.yStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
             # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
             # self.zStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
             # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
-        # with open(fname, 'r') as f:
-        #     f.re
         self.__draw_mesh()
         print(self.mesh)
 
