@@ -6,29 +6,30 @@ from matplotlib.patches import Rectangle
 from extras import Cell, Receiver
 
 
-def read_receivers_from_file(path: str) -> list:
+def read_receivers_from_file(fname: str) -> list:
     receivers = []
-    for f in open(path):
+    for f in open(fname):
         buf = [float(attr) for attr in f.split(' ')]
         receivers.append(Receiver(*buf))
     return receivers
 
 
-def write_receivers_to_file(path: str, receivers: list[Receiver]):
-    with open(path, mode="w") as f:
+def write_receivers_to_file(fname: str, receivers: list[Receiver]):
+    if fname[-4:] != '.dat':
+        fname += '.dat'
+    with open(fname, mode="w") as f:
         for receiver in receivers:
             f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, receiver.bx, receiver.by, receiver.bz))) + "\n")
 
 
-def read_mesh_from_file(path: str) -> list:
-    # cells = []
-    with open(path, 'r') as f:
+def read_mesh_from_file(fname: str) -> list:
+    with open(fname, 'r') as f:
         lines = f.readlines()
         print(lines[0])
         length, width, height = lines[0].split(' ')
         cells = [Cell(*list(map(float, attr[0:3])), *list(map(float, (length, width, height))), *list(map(float, attr[3:]))) for attr in [line.split(' ') for line in lines[1:]]]
         # cells
-    # for f in open(path):
+    # for f in open(fname):
     #     buf = [float(attr) for attr in f.split(' ')]
     #     cells.append(Cell(*buf, 100, 100, 50))
         # cells.append(Cell(buf[0],
@@ -39,6 +40,8 @@ def read_mesh_from_file(path: str) -> list:
 
 
 def write_mesh_to_file(fname, mesh):
+    if fname[-4:] != '.mes':
+        fname += '.mes'
     with open(fname, mode='w') as f:
         f.write(" ".join(map(str, (mesh[0].length, mesh[0].width, mesh[0].height))) + '\n')
         for cell in mesh:

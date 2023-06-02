@@ -1,7 +1,6 @@
 import sys
 import traceback
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QErrorMessage, QFileDialog
@@ -11,9 +10,7 @@ from widgets import DensityInputDialog, CustomMessageBox, ScientificDoubleSpinBo
 from extras import Point, constants, custom_functions, generator
 
 
-# TODO: сделать кнопку для загрузки значений в приемниках на вкладку с обратной задачей
 # TODO: добавить выбор осей
-# TODO: перенести кнопку сохранения сетки в меню
 # TODO: добавить подписи к осям
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -24,21 +21,18 @@ class MainWindow(QMainWindow):
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.directCalculateBtn.clicked.connect(self.on_calculate_direct_btn_click)
         self.clearMeshBtn.clicked.connect(self.on_clear_mesh_btn_click)
-        self.saveMeshBtn.clicked.connect(self.on_save_mesh_btn_click)
         self.saveReceiversBtn.clicked.connect(self.on_save_receivers_btn_click)
 
         self.drawInverseMeshBtn.clicked.connect(self.on_draw_btn_click)
-        # self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.inverseCalculateBtn.clicked.connect(self.on_calculate_inverse_btn_click)
         self.clearInverseMeshBtn.clicked.connect(self.on_clear_mesh_btn_click)
-        self.saveInverseMeshBtn.clicked.connect(self.on_save_mesh_btn_click)
 
+        self.saveMeshAction.triggered.connect(self.on_save_mesh_action_click)
         self.openMeshAction.triggered.connect(self.on_open_mesh_action_click)
+        self.openReceiversAction.triggered.connect(self.on_open_receivers_action)
 
         self.alfaRegularizationSB = ScientificDoubleSpinBox()
-        # self.alfaRegularizationSB = QDoubleSpinBox()
         self.verticalLayout_10.addWidget(self.alfaRegularizationSB)
-        # self.tabWidget.currentChanged.connect(self.on_tab_change)
 
         self.direct_mesh_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
         self.direct_mesh_canvas = FigureCanvas(self.direct_mesh_figure)
@@ -149,7 +143,6 @@ class MainWindow(QMainWindow):
 
         is_mesh_changed = False
         for i, patch in enumerate(ax.patches):
-            # print(patch)
             if patch.contains(event)[0]:
                 # если нажата ПКМ
                 if event.button == 3:
@@ -191,7 +184,7 @@ class MainWindow(QMainWindow):
         self.plot_canvas.draw()
         self.mesh_canvas.draw()
 
-    def on_save_mesh_btn_click(self):
+    def on_save_mesh_action_click(self):
         if len(self.mesh) == 0:
             msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.NO_MESH)
             msg.exec_()
@@ -201,8 +194,14 @@ class MainWindow(QMainWindow):
             custom_functions.write_mesh_to_file(fname, self.mesh)
 
     def on_save_receivers_btn_click(self):
+        if len(self.receivers) == 0:
+            msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.NO_RECEIVERS)
+            msg.exec_()
+            return
         fname, _ = QFileDialog.getSaveFileName(self, "Выберите расположение файла", "./results", ".dat (*.dat)")
-        custom_functions.write_receivers_to_file(fname, self.receivers)
+        if fname:
+
+            custom_functions.write_receivers_to_file(fname, self.receivers)
 
     def on_open_mesh_action_click(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./meshes", ".mes (*.mes)")
@@ -211,12 +210,15 @@ class MainWindow(QMainWindow):
             self.mesh = custom_functions.read_mesh_from_file(fname)
             custom_functions.draw_mesh(self.mesh_figure, self.mesh)
             print(self.mesh)
-            # self.xStartSB.setValue(self.mesh[0].x - self.mesh[0].length/2)
-            # self.xEndSB.setValue(self.mesh[-1].x - self.mesh[0].length / 2)
-            # self.yStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
-            # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
-            # self.zStartSB.setValue(self.mesh[0].y - self.mesh[0].width / 2)
-            # self.yEndSB.setValue(self.mesh[-1].y - self.mesh[0].width / 2)
+
+    def on_open_receivers_action(self):
+        fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с результатами", "./results", ".dat (*.dat)")
+        print(fname)
+        if fname:
+            self.receivers = custom_functions.read_receivers_from_file(fname)
+            print(self.receivers)
+            self.__draw_plot(self.receivers)
+            # print(self.mesh)
 
     def on_calculate_direct_btn_click(self):
         custom_functions.calculate_receivers(self.direct_mesh, self.receivers)
@@ -229,7 +231,8 @@ class MainWindow(QMainWindow):
             return
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
         custom_functions.draw_mesh(self.mesh_figure, self.mesh)
-        custom_functions.draw_mesh(self.orig_mesh_figure, self.direct_mesh)
+        if self.direct_mesh_figure.get_axes():
+            custom_functions.draw_mesh(self.orig_mesh_figure, self.direct_mesh)
 
     def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
         self.plot_figure.clear()
@@ -237,11 +240,10 @@ class MainWindow(QMainWindow):
         ax.set_title("X-компонента магнитного поля B")
         x = [receiver.x for receiver in receivers]
         bx = [receiver.bx for receiver in receivers]
-        # print(x, bx)
         ax.plot(x, bx, marker="o")
         ax.grid()
-        # print(self.mesh_figure.get_axes()[0].get_xlim)
-        ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
+        if self.direct_mesh_figure.get_axes():
+            ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
         self.plot_canvas.draw()
 
 

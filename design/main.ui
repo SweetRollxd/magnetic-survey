@@ -383,19 +383,12 @@
                  </layout>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="saveMeshBtn">
-                  <property name="text">
-                   <string>Сохранить сетку</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <spacer name="verticalSpacer_4">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
                   </property>
                   <property name="sizeType">
-                   <enum>QSizePolicy::Ignored</enum>
+                   <enum>QSizePolicy::Expanding</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
@@ -754,13 +747,6 @@
                   </item>
                  </layout>
                 </item>
-                <item>
-                 <widget class="QPushButton" name="saveInverseMeshBtn">
-                  <property name="text">
-                   <string>Сохранить сетку</string>
-                  </property>
-                 </widget>
-                </item>
                </layout>
               </item>
               <item>
@@ -847,19 +833,77 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="openMeshAction"/>
-    <addaction name="action_2"/>
+    <widget class="QMenu" name="menu_3">
+     <property name="title">
+      <string>Открыть</string>
+     </property>
+     <addaction name="openMeshAction"/>
+     <addaction name="openReceiversAction"/>
+    </widget>
+    <addaction name="menu_3"/>
+    <addaction name="saveMeshAction"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <widget class="QMenu" name="menux">
+     <property name="title">
+      <string>Ось компоненты</string>
+     </property>
+     <addaction name="actionx_2"/>
+     <addaction name="actiony_2"/>
+     <addaction name="actionz_2"/>
+     <addaction name="separator"/>
+    </widget>
+    <addaction name="menux"/>
    </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
-  <action name="openMeshAction">
+  <action name="saveMeshAction">
    <property name="text">
-    <string>Открыть сетку</string>
+    <string>Сохранить сетку</string>
    </property>
   </action>
-  <action name="action_2">
+  <action name="openMeshAction">
    <property name="text">
-    <string>Сохранить</string>
+    <string>Сетка</string>
+   </property>
+  </action>
+  <action name="openReceiversAction">
+   <property name="text">
+    <string>Сигналы в приемниках</string>
+   </property>
+  </action>
+  <action name="actiony">
+   <property name="text">
+    <string>y-компонента</string>
+   </property>
+  </action>
+  <action name="actionz">
+   <property name="text">
+    <string>z-компонента</string>
+   </property>
+  </action>
+  <action name="actionx">
+   <property name="text">
+    <string>x</string>
+   </property>
+  </action>
+  <action name="actionx_2">
+   <property name="text">
+    <string>x</string>
+   </property>
+  </action>
+  <action name="actiony_2">
+   <property name="text">
+    <string>y</string>
+   </property>
+  </action>
+  <action name="actionz_2">
+   <property name="text">
+    <string>z</string>
    </property>
   </action>
  </widget>
