@@ -847,16 +847,9 @@
     <property name="title">
      <string>Вид</string>
     </property>
-    <widget class="QMenu" name="menux">
-     <property name="title">
-      <string>Ось компоненты</string>
-     </property>
-     <addaction name="actionx_2"/>
-     <addaction name="actiony_2"/>
-     <addaction name="actionz_2"/>
-     <addaction name="separator"/>
-    </widget>
-    <addaction name="menux"/>
+    <addaction name="xAxisAction"/>
+    <addaction name="yAxisAction"/>
+    <addaction name="zAxisAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -904,6 +897,33 @@
   <action name="actionz_2">
    <property name="text">
     <string>z</string>
+   </property>
+  </action>
+  <action name="xAxisAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>x-компонента</string>
+   </property>
+  </action>
+  <action name="yAxisAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>y-компонента</string>
+   </property>
+  </action>
+  <action name="zAxisAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>z-компонента</string>
    </property>
   </action>
  </widget>

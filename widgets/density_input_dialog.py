@@ -7,9 +7,9 @@ class DensityInputDialog(QDialog):
         super().__init__(parent)
         loadUi("design/density_input_dialog.ui", self)
 
-        self.pxSB.setValue(cell.px)
-        self.pySB.setValue(cell.py)
-        self.pzSB.setValue(cell.pz)
+        self.pxSB.setValue(cell.p[0])
+        self.pySB.setValue(cell.p[1])
+        self.pzSB.setValue(cell.p[2])
 
     def get_inputs(self):
         return self.pxSB.value(), self.pySB.value(), self.pzSB.value()

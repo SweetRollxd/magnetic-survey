@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
 from extras import Cell, Receiver
+from extras.constants import Axes
 
 
 def read_receivers_from_file(fname: str) -> list:
@@ -19,7 +20,7 @@ def write_receivers_to_file(fname: str, receivers: list[Receiver]):
         fname += '.dat'
     with open(fname, mode="w") as f:
         for receiver in receivers:
-            f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, receiver.bx, receiver.by, receiver.bz))) + "\n")
+            f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, *receiver.b))) + "\n")
 
 
 def read_mesh_from_file(fname: str) -> list:
@@ -45,10 +46,21 @@ def write_mesh_to_file(fname, mesh):
     with open(fname, mode='w') as f:
         f.write(" ".join(map(str, (mesh[0].length, mesh[0].width, mesh[0].height))) + '\n')
         for cell in mesh:
-            f.write(" ".join(map(str, (cell.x, cell.y, cell.z, cell.px, cell.py, cell.pz))) + '\n')
+            f.write(" ".join(map(str, (cell.x, cell.y, cell.z, cell.p[0], cell.p[1], cell.p[2]))) + '\n')
 
 
-def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None):
+def get_density_by_axis(mesh: list[Cell], axis: Axes = Axes.X_AXIS):
+    if axis == Axes.X_AXIS:
+        return [cell.p[0] for cell in mesh]
+    elif axis == Axes.Y_AXIS:
+        return [cell.p[1] for cell in mesh]
+    elif axis == Axes.Z_AXIS:
+        return [cell.p[2] for cell in mesh]
+    else:
+        raise ValueError("Invalid axis provided")
+
+
+def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None, axis: Axes = Axes.X_AXIS):
 
     figure.clear()
     ax = figure.add_subplot(111)
@@ -60,26 +72,32 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
     ax.grid(True)
     ax.set_axisbelow(True)
 
-    min_px = min(mesh, key=lambda cell: cell.px).px
-    max_px = max(mesh, key=lambda cell: cell.px).px
+    # values = get_density_by_axis(mesh, axis)
+    print(f"Mesh {mesh}")
+    print(axis.value)
+    values = [cell.p[axis.value] for cell in mesh]
+    # min_p[0] = min(mesh, key=lambda cell: cell.p[0]).p[0]
+    # max_p[0] = max(mesh, key=lambda cell: cell.p[0]).p[0]
+    min_value = min(values)
+    max_value = max(values)
 
     # TODO: исправить костыль
-    if min_px > 0:
-        min_px = 0
-    if min_px == max_px:
-        max_px += min_px + 1
-    print(f"Min: {min_px}, max: {max_px}")
+    if min_value > 0:
+        min_value = 0
+    if min_value == max_value:
+        max_value += max_value + 1
+    print(f"Min: {min_value}, max: {max_value}")
     for cell in mesh:
-        normalized_px = (cell.px - min_px) / (max_px - min_px)
-        text_color = 'w' if normalized_px >= 0.5 else 'k'
+        normalized_value = (cell.p[axis.value] - min_value) / (max_value - min_value)
+        text_color = 'w' if normalized_value >= 0.5 else 'k'
         rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
                          cell.length,
                          cell.height,
                          linewidth=1,
                          edgecolor='k',
-                         facecolor=f'{1 - normalized_px}')
+                         facecolor=f'{1 - normalized_value}')
         ax.add_patch(rect)
-        ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
+        ax.annotate(round(cell.p[axis.value], 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
 
     ax.plot()
 
@@ -94,6 +112,19 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
     figure.canvas.draw()
 
 
+def draw_plot(figure: plt.Figure, receivers: list[Receiver], axis: Axes = Axes.X_AXIS):
+    figure.clear()
+    ax = figure.add_subplot(111)
+    ax.set_title("X-компонента магнитного поля B")
+    x = [receiver.x for receiver in receivers]
+    values = [receiver.b[axis.value] for receiver in receivers]
+    ax.plot(x, values, marker="o")
+    ax.grid()
+    # if self.direct_mesh_figure.get_axes():
+    #     ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
+    figure.canvas.draw()
+
+
 def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:
     for receiver in receivers:
         Bx, By, Bz = 0, 0, 0
@@ -105,23 +136,24 @@ def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:
             dz = receiver.z - cell.z
             distance = receiver.distance(cell)
             Bx += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
-                    cell.px * (3 * dx * dx / distance ** 2 - 1) +
-                    cell.py * (3 * dx * dy / distance ** 2) +
-                    cell.pz * (3 * dx * dz / distance ** 2)
+                    cell.p[0] * (3 * dx * dx / distance ** 2 - 1) +
+                    cell.p[1] * (3 * dx * dy / distance ** 2) +
+                    cell.p[2] * (3 * dx * dz / distance ** 2)
             )
             By += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
-                    cell.px * (3 * dx * dy / distance ** 2) +
-                    cell.py * (3 * dy * dy / distance ** 2 - 1) +
-                    cell.pz * (3 * dy * dz / distance ** 2)
+                    cell.p[0] * (3 * dx * dy / distance ** 2) +
+                    cell.p[1] * (3 * dy * dy / distance ** 2 - 1) +
+                    cell.p[2] * (3 * dy * dz / distance ** 2)
             )
             Bz += cell.volume() * 1 / (4 * math.pi * distance ** 3) * (
-                    cell.px * (3 * dx * dz / distance ** 2) +
-                    cell.py * (3 * dy * dz / distance ** 2) +
-                    cell.pz * (3 * dz * dz / distance ** 2 - 1)
+                    cell.p[0] * (3 * dx * dz / distance ** 2) +
+                    cell.p[1] * (3 * dy * dz / distance ** 2) +
+                    cell.p[2] * (3 * dz * dz / distance ** 2 - 1)
             )
-        receiver.bx = Bx
-        receiver.by = By
-        receiver.bz = Bz
+        # receiver.bx = Bx
+        # receiver.by = By
+        # receiver.bz = Bz
+        receiver.b = (Bx, By, Bz)
     return receivers
 
 
@@ -146,7 +178,7 @@ def calculate_mesh(mesh: list, receivers: list, alfa: float) -> list[Cell]:
             L[i * 3 + 2][j * 3 + 1] += mult * 3 * dy * dz / dist ** 2
             L[i * 3 + 2][j * 3 + 2] += mult * 3 * (dz * dz / dist ** 2 - 1)
 
-    S = [b for r in receivers for b in (r.bx, r.by, r.bz)]
+    S = [b for r in receivers for b in r.b]
 
     A = np.matmul(L.transpose(), L)
     b = np.matmul(L.transpose(), S)
@@ -158,8 +190,6 @@ def calculate_mesh(mesh: list, receivers: list, alfa: float) -> list[Cell]:
     p = np.linalg.solve(regularizedA, b)
 
     for i, c in enumerate(mesh):
-        c.px = p[i * 3]
-        c.py = p[i * 3 + 1]
-        c.pz = p[i * 3 + 2]
+        c.p = p[i*3:i*3+3]
 
     return mesh

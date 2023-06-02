@@ -1,17 +1,19 @@
 import sys
 import traceback
 import matplotlib.pyplot as plt
+from functools import partial
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QErrorMessage, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QActionGroup
+from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from widgets import DensityInputDialog, CustomMessageBox, ScientificDoubleSpinBox
 from extras import Point, constants, custom_functions, generator
 
 
-# TODO: добавить выбор осей
 # TODO: добавить подписи к осям
+# TODO: сделать хэндлер для исключений
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -33,6 +35,18 @@ class MainWindow(QMainWindow):
 
         self.alfaRegularizationSB = ScientificDoubleSpinBox()
         self.verticalLayout_10.addWidget(self.alfaRegularizationSB)
+
+        # настраиваем ActionGroup для осей. Приходится вручную, потому что в дизайнере нельзя его настроить
+        self.axisActionGroup = QActionGroup(self)
+        self.axisActionGroup.addAction(self.xAxisAction)
+        self.axisActionGroup.addAction(self.yAxisAction)
+        self.axisActionGroup.addAction(self.zAxisAction)
+        self.axisActionGroup.setExclusive(True)
+        self.xAxisAction.triggered.connect(partial(self.on_axis_group_change, constants.Axes.X_AXIS))
+        self.yAxisAction.triggered.connect(partial(self.on_axis_group_change, constants.Axes.Y_AXIS))
+        self.zAxisAction.triggered.connect(partial(self.on_axis_group_change, constants.Axes.Z_AXIS))
+
+        self.axis = constants.Axes.X_AXIS
 
         self.direct_mesh_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
         self.direct_mesh_canvas = FigureCanvas(self.direct_mesh_figure)
@@ -159,7 +173,7 @@ class MainWindow(QMainWindow):
                     print(self.direct_mesh[i])
                     dialog = DensityInputDialog(self.direct_mesh[i])
                     if dialog.exec_():
-                        self.direct_mesh[i].px, self.direct_mesh[i].py, self.direct_mesh[i].pz = dialog.get_inputs()
+                        self.direct_mesh[i].p = dialog.get_inputs()
                         print(self.direct_mesh[i])
                         is_mesh_changed = True
                         break
@@ -169,12 +183,13 @@ class MainWindow(QMainWindow):
         if is_mesh_changed:
             custom_functions.draw_mesh(self.mesh_figure,
                                        self.mesh,
-                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None)
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       self.axis)
 
     def on_add_receivers_btn_click(self):
         self.receivers = generator.generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
         if self.draw_receivers_checkbox_is_checked():
-            custom_functions.draw_mesh(self.mesh_figure, self.mesh, self.receivers)
+            custom_functions.draw_mesh(self.mesh_figure, self.mesh, self.receivers, self.axis)
 
     def on_clear_mesh_btn_click(self):
         self.mesh_figure.clear()
@@ -208,7 +223,7 @@ class MainWindow(QMainWindow):
         print(fname)
         if fname:
             self.mesh = custom_functions.read_mesh_from_file(fname)
-            custom_functions.draw_mesh(self.mesh_figure, self.mesh)
+            custom_functions.draw_mesh(self.mesh_figure, self.mesh, axis=self.axis)
             print(self.mesh)
 
     def on_open_receivers_action(self):
@@ -217,34 +232,66 @@ class MainWindow(QMainWindow):
         if fname:
             self.receivers = custom_functions.read_receivers_from_file(fname)
             print(self.receivers)
-            self.__draw_plot(self.receivers)
+            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
             # print(self.mesh)
+
+    def on_axis_group_change(self, axis: constants.Axes):
+        # print(self.axis)
+        self.axis = axis
+        print(self.axis)
+        if self.direct_mesh_figure.get_axes():
+            custom_functions.draw_mesh(self.direct_mesh_figure,
+                                       self.direct_mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       axis)
+        if self.plot_figure.get_axes():
+            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
+        if self.inverse_mesh_figure.get_axes():
+            custom_functions.draw_mesh(self.inverse_mesh_figure,
+                                       self.inverse_mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       axis)
+        if self.orig_mesh_figure.get_axes():
+            custom_functions.draw_mesh(self.orig_mesh_figure,
+                                       self.direct_mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       axis)
 
     def on_calculate_direct_btn_click(self):
         custom_functions.calculate_receivers(self.direct_mesh, self.receivers)
-        self.__draw_plot(self.receivers)
+        custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
 
     def on_calculate_inverse_btn_click(self):
+        if len(self.mesh) == 0:
+            msg = CustomMessageBox(QMessageBox.Warning, message_type=constants.MessageTypes.NO_MESH)
+            msg.exec_()
+            return
         if len(self.receivers) == 0:
             msg = CustomMessageBox(QMessageBox.Warning, message_type=constants.MessageTypes.NO_RECEIVERS)
             msg.exec_()
             return
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
-        custom_functions.draw_mesh(self.mesh_figure, self.mesh)
+        custom_functions.draw_mesh(self.mesh_figure,
+                                   self.mesh,
+                                   self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                   self.axis)
         if self.direct_mesh_figure.get_axes():
-            custom_functions.draw_mesh(self.orig_mesh_figure, self.direct_mesh)
+            custom_functions.draw_mesh(self.orig_mesh_figure,
+                                       self.direct_mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       axis=self.axis)
 
-    def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
-        self.plot_figure.clear()
-        ax = self.plot_figure.add_subplot(111)
-        ax.set_title("X-компонента магнитного поля B")
-        x = [receiver.x for receiver in receivers]
-        bx = [receiver.bx for receiver in receivers]
-        ax.plot(x, bx, marker="o")
-        ax.grid()
-        if self.direct_mesh_figure.get_axes():
-            ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
-        self.plot_canvas.draw()
+    # def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
+    #     self.plot_figure.clear()
+    #     ax = self.plot_figure.add_subplot(111)
+    #     ax.set_title("X-компонента магнитного поля B")
+    #     x = [receiver.x for receiver in receivers]
+    #     bx = [receiver.bx for receiver in receivers]
+    #     ax.plot(x, bx, marker="o")
+    #     ax.grid()
+    #     if self.direct_mesh_figure.get_axes():
+    #         ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
+    #     self.plot_canvas.draw()
 
 
 app = QApplication(sys.argv)
