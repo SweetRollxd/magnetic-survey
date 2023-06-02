@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         self.directCalculateBtn.clicked.connect(self.on_calculate_direct_btn_click)
         self.clearMeshBtn.clicked.connect(self.on_clear_mesh_btn_click)
         self.saveMeshBtn.clicked.connect(self.on_save_mesh_btn_click)
+        self.saveReceiversBtn.clicked.connect(self.on_save_receivers_btn_click)
 
         self.drawInverseMeshBtn.clicked.connect(self.on_draw_btn_click)
         # self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
@@ -222,6 +223,10 @@ class MainWindow(QMainWindow):
                 f.write(" ".join(map(str, (self.mesh[0].length, self.mesh[0].width, self.mesh[0].height))) + '\n')
                 for cell in self.direct_mesh:
                     f.write(" ".join(map(str, (cell.x, cell.y, cell.z))) + '\n')
+
+    def on_save_receivers_btn_click(self):
+        fname, _ = QFileDialog.getSaveFileName(self, "Выберите расположение файла", "./results", ".dat (*.dat)")
+        extras.write_receivers(fname, self.receivers)
 
     def on_open_mesh_action_click(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./meshes", ".mes (*.mes)")

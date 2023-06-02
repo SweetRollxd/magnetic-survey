@@ -64,6 +64,12 @@ def get_receivers(path: str) -> list:
     return receivers
 
 
+def write_receivers(path: str, receivers: list[Receiver]):
+    with open(path, mode="w") as f:
+        for receiver in receivers:
+            f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, receiver.bx, receiver.by, receiver.bz))) + "\n")
+
+
 def get_mesh(path: str) -> list:
     # cells = []
     with open(path, 'r') as f:
@@ -163,6 +169,7 @@ def calculate_receivers(mesh: list, receivers: list):
         receiver.bx = Bx
         receiver.by = By
         receiver.bz = Bz
+
 
 def calculate_mesh(mesh: list, receivers: list):
     L = np.zeros(shape=(len(receivers) * 3, len(mesh) * 3))
