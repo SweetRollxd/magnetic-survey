@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class Axes(Enum):
-    X_AXIS = 0
-    Y_AXIS = 1
-    Z_AXIS = 2
+    X = 0
+    Y = 1
+    Z = 2
 
 
 class TaskType(Enum):

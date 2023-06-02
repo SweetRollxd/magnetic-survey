@@ -49,22 +49,22 @@ def write_mesh_to_file(fname, mesh):
             f.write(" ".join(map(str, (cell.x, cell.y, cell.z, cell.p[0], cell.p[1], cell.p[2]))) + '\n')
 
 
-def get_density_by_axis(mesh: list[Cell], axis: Axes = Axes.X_AXIS):
-    if axis == Axes.X_AXIS:
+def get_density_by_axis(mesh: list[Cell], axis: Axes = Axes.X):
+    if axis == Axes.X:
         return [cell.p[0] for cell in mesh]
-    elif axis == Axes.Y_AXIS:
+    elif axis == Axes.Y:
         return [cell.p[1] for cell in mesh]
-    elif axis == Axes.Z_AXIS:
+    elif axis == Axes.Z:
         return [cell.p[2] for cell in mesh]
     else:
         raise ValueError("Invalid axis provided")
 
 
-def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None, axis: Axes = Axes.X_AXIS):
+def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None, axis: Axes = Axes.X, title: str = ""):
 
     figure.clear()
     ax = figure.add_subplot(111)
-    ax.set_title("Сетка")
+    ax.set_title(title)
 
     ax.axis('equal')
     ax.axhline(y=0, color='k', linewidth=1)
@@ -73,6 +73,8 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
     ax.set_axisbelow(True)
 
     # values = get_density_by_axis(mesh, axis)
+    ax.set_ylabel('Z, м')
+    ax.set_xlabel('X, м')
     print(f"Mesh {mesh}")
     print(axis.value)
     values = [cell.p[axis.value] for cell in mesh]
@@ -112,10 +114,12 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
     figure.canvas.draw()
 
 
-def draw_plot(figure: plt.Figure, receivers: list[Receiver], axis: Axes = Axes.X_AXIS):
+def draw_plot(figure: plt.Figure, receivers: list[Receiver], axis: Axes = Axes.X):
     figure.clear()
     ax = figure.add_subplot(111)
-    ax.set_title("X-компонента магнитного поля B")
+    ax.set_xlabel('X, м')
+    ax.set_ylabel(f'B{Axes(axis).name.lower()}, Тл')
+    ax.set_title(f"{Axes(axis).name}-компонента магнитного поля B")
     x = [receiver.x for receiver in receivers]
     values = [receiver.b[axis.value] for receiver in receivers]
     ax.plot(x, values, marker="o")
