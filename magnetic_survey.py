@@ -5,14 +5,12 @@ from functools import partial
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QActionGroup
-from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from widgets import DensityInputDialog, CustomMessageBox, ScientificDoubleSpinBox
 from extras import Point, constants, custom_functions, generator
 
 
-# TODO: сделать хэндлер для исключений
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -300,6 +298,16 @@ class MainWindow(QMainWindow):
     #     self.plot_canvas.draw()
 
 
+def except_hook(exc_type, exc_value, exc_tb):
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    msg = CustomMessageBox(QMessageBox.Critical, text=f"{exc_type}, {exc_value}")
+    msg.exec_()
+    print(traceback.print_exc())
+    print("error message:\n", tb)
+    # QtWidgets.QApplication.quit()
+
+
+sys.excepthook = except_hook
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
