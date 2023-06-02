@@ -2,8 +2,8 @@ import math
 
 import numpy as np
 
-from extras import Point, get_mesh, get_receivers, draw_mesh
-from generator import generate_mesh
+from extras import Point, get_receivers, draw_mesh
+from extras.generator import generate_mesh
 
 receivers_results_path = 'receivers_results.dat'
 mesh_path = 'mesh_16.dat'

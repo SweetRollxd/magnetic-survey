@@ -1,8 +1,8 @@
 import math
 from matplotlib import pyplot as plt
 
-from extras import Cell, Point, get_mesh, get_receivers, draw_mesh
-from generator import generate_mesh
+from extras import Point, get_receivers, draw_mesh
+from extras.generator import generate_mesh
 
 
 def get_receivers_result(path: str) -> list:

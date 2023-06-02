@@ -50,5 +50,5 @@ if __name__ == '__main__':
     end_pnt = Point(400, 0, -300)
     generated_mesh = generate_mesh(start_pnt, end_pnt, 9, 1, 6)
     # generated_mesh[]
-    # print(generated_mesh)
+    print(generated_mesh)
     # draw_mesh('generated_mesh.png', generated_mesh)
