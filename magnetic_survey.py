@@ -14,6 +14,7 @@ from extras import Point, constants, custom_functions, generator
 # TODO: сделать кнопку для загрузки значений в приемниках на вкладку с обратной задачей
 # TODO: добавить выбор осей
 # TODO: перенести кнопку сохранения сетки в меню
+# TODO: добавить подписи к осям
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -139,8 +140,6 @@ class MainWindow(QMainWindow):
                 start_pnt = Point(-100, -50, -100)
                 end_pnt = Point(100, 50, -200)
                 self.mesh = generator.generate_mesh(start_pnt, end_pnt, 2, 1, 2)
-                # for cell in mesh:
-                #     cell.px = 1
             else:
                 start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
                 end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
@@ -150,7 +149,10 @@ class MainWindow(QMainWindow):
             #     cell.px = 1
 
             print(f"Mesh: {self.mesh}")
-            self.__draw_mesh()
+            custom_functions.draw_mesh(self.mesh_figure,
+                                       self.mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None)
+            # self.__draw_mesh()
             # if not self.addReceiversBtn.isEnabled():
             #     self.addReceiversBtn.setEnabled(True)
 
@@ -172,6 +174,8 @@ class MainWindow(QMainWindow):
         if len(axes) == 0:
             return
         ax = axes[0]
+
+        is_mesh_changed = False
         for i, patch in enumerate(ax.patches):
             # print(patch)
             if patch.contains(event)[0]:
@@ -181,6 +185,7 @@ class MainWindow(QMainWindow):
                     if len(self.direct_mesh) > 1:
                         # то удаляем ячейку
                         del self.direct_mesh[i]
+                        is_mesh_changed = True
                         break
                     else:
                         return
@@ -191,10 +196,15 @@ class MainWindow(QMainWindow):
                     if dialog.exec_():
                         self.direct_mesh[i].px, self.direct_mesh[i].py, self.direct_mesh[i].pz = dialog.get_inputs()
                         print(self.direct_mesh[i])
+                        is_mesh_changed = True
                         break
                     return
 
-        self.__draw_mesh()
+        # если в сетке что-то изменилось, то перерисовываем всю сетку (да, это медленно и плохо)
+        if is_mesh_changed:
+            custom_functions.draw_mesh(self.mesh_figure,
+                                       self.mesh,
+                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None)
 
     def on_add_receivers_btn_click(self):
         # self.receivers = generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
@@ -203,7 +213,8 @@ class MainWindow(QMainWindow):
         else:
             self.receivers = generator.generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
 
-        self.__draw_mesh()
+        if self.draw_receivers_checkbox_is_checked():
+            custom_functions.draw_mesh(self.mesh_figure, self.mesh, self.receivers)
 
         # if not self.directCalculateBtn.isEnabled() and len(self.mesh_figure.get_axes()):
         #     self.directCalculateBtn.setEnabled(True)
@@ -241,7 +252,7 @@ class MainWindow(QMainWindow):
         print(fname)
         if fname:
             self.mesh = custom_functions.get_mesh(fname)
-            self.__draw_mesh()
+            custom_functions.draw_mesh(self.mesh_figure, self.mesh)
             print(self.mesh)
             # self.xStartSB.setValue(self.mesh[0].x - self.mesh[0].length/2)
             # self.xEndSB.setValue(self.mesh[-1].x - self.mesh[0].length / 2)
@@ -264,68 +275,6 @@ class MainWindow(QMainWindow):
         custom_functions.draw_mesh(self.orig_mesh_figure, self.direct_mesh)
         # self.__draw_mesh()
         # self.__draw_mesh_static(self.orig_mesh_figure, self.direct_mesh)
-
-    # TODO: заменить на единую draw_mesh
-    def __draw_mesh(self):
-
-        if len(self.mesh) == 0:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText("Нет сетки")
-            msg.setInformativeText(f'Не была введена или сгенерирована сетка')
-            msg.setWindowTitle("Ошибка")
-            msg.exec_()
-            return
-
-        self.mesh_figure.clear()
-        ax = self.mesh_figure.add_subplot(111)
-        ax.set_title("Сетка")
-
-        ax.axis('equal')
-        ax.axhline(y=0, color='k', linewidth=1)
-        ax.axvline(x=0, color='k', linewidth=1)
-        ax.grid(True)
-        ax.set_axisbelow(True)
-        # ax.set_xticks(numpy.arange(-2000, 2000, 200))
-        # ax.set_yticks(numpy.arange(-1000, 200, 100))
-
-        # ax.set_ylim([-400, 100])
-
-        min_px = min(self.mesh, key=lambda cell: cell.px).px
-        max_px = max(self.mesh, key=lambda cell: cell.px).px
-
-        # TODO: исправить костыль
-        if min_px > 0:
-            min_px = 0
-        if min_px == max_px:
-            max_px += min_px + 1
-        print(f"Min: {min_px}, max: {max_px}")
-        for cell in self.mesh:
-            # print(cell.x, cell.z, cell.width)
-            # print(f"px = {cell.px}")
-            normalized_px = (cell.px - min_px) / (max_px - min_px)
-            text_color = 'w' if normalized_px >= 0.5 else 'k'
-            rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
-                             cell.length,
-                             cell.height,
-                             linewidth=1,
-                             # edgecolor='none',
-                             edgecolor='k',
-                             facecolor=f'{1 - normalized_px}')
-            ax.add_patch(rect)
-            ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
-
-        ax.plot()
-
-        if self.receivers is not None and self.draw_receivers_checkbox_is_checked():
-            x = []
-            z = []
-            for r in self.receivers:
-                x.append(r.x)
-                z.append(r.z)
-                ax.scatter(x, z)
-
-        self.mesh_canvas.draw()
 
     def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
         self.plot_figure.clear()
