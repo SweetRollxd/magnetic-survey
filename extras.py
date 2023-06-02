@@ -171,7 +171,7 @@ def calculate_receivers(mesh: list, receivers: list):
         receiver.bz = Bz
 
 
-def calculate_mesh(mesh: list, receivers: list):
+def calculate_mesh(mesh: list, receivers: list, alfa: float):
     L = np.zeros(shape=(len(receivers) * 3, len(mesh) * 3))
     for i, r in enumerate(receivers):
         for j, c in enumerate(mesh):
@@ -193,20 +193,15 @@ def calculate_mesh(mesh: list, receivers: list):
             L[i * 3 + 2][j * 3 + 2] += mult * 3 * (dz * dz / dist ** 2 - 1)
 
     S = [b for r in receivers for b in (r.bx, r.by, r.bz)]
-    print(f"L = {L}")
-    print(f"S = {S}")
 
     A = np.matmul(L.transpose(), L)
     b = np.matmul(L.transpose(), S)
     # print(f"A = {A}")
     # print(f"b = {b}")
 
-    alfa = 10**-5
-    # alfa = 0
     ones = np.eye(len(A))
     regularizedA = A + np.dot(alfa, ones)
     p = np.linalg.solve(regularizedA, b)
-    print(f"p={p}")
 
     for i, c in enumerate(mesh):
         c.px = p[i * 3]

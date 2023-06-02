@@ -1,21 +1,22 @@
 import sys
-import numpy as np
 import traceback
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QErrorMessage, QFileDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from widgets.scientific_spin import ScientificDoubleSpinBox
+from widgets.density_input_dialog import DensityInputDialog
 import extras
-from extras import Point, Receiver
+from extras import Point
 # from extras import Point, Receiver, get_receivers, draw_mesh, calculate_receivers
 from generator import generate_mesh, generate_receivers
 
 import constants
 
-# TODO: реализовать кнопку для сохранения результатов в приемниках
+
 # TODO: сделать кнопку для загрузки значений в приемниках на вкладку с обратной задачей
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -37,6 +38,9 @@ class MainWindow(QMainWindow):
 
         self.openMeshAction.triggered.connect(self.on_open_mesh_action_click)
 
+        self.alfaRegularizationSB = ScientificDoubleSpinBox()
+        # self.alfaRegularizationSB = QDoubleSpinBox()
+        self.verticalLayout_10.addWidget(self.alfaRegularizationSB)
         # self.tabWidget.currentChanged.connect(self.on_tab_change)
 
         self.direct_mesh_figure = plt.figure(figsize=(16.0, 4.8), constrained_layout=True)
@@ -229,6 +233,7 @@ class MainWindow(QMainWindow):
         extras.write_receivers(fname, self.receivers)
 
     def on_open_mesh_action_click(self):
+        # TODO: исправить ошибку при нажатии "Cancel"
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./meshes", ".mes (*.mes)")
         print(fname)
         if fname:
@@ -248,10 +253,11 @@ class MainWindow(QMainWindow):
 
     def on_calculate_inverse_btn_click(self):
         # TODO: сделать контрол для регуляризации
-        self.inverse_mesh = extras.calculate_mesh(self.inverse_mesh, self.receivers)
+        self.inverse_mesh = extras.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
         self.__draw_mesh()
         self.__draw_mesh_static(self.orig_mesh_figure, self.direct_mesh)
 
+    # TODO: заменить на единую draw_mesh
     def __draw_mesh(self):
 
         if len(self.mesh) == 0:
@@ -454,19 +460,6 @@ class MeshPlot(FigureCanvas):
             self.ax.annotate(round(cell.px, 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
             # self.ax.
         self.ax.plot()
-
-
-class DensityInputDialog(QDialog):
-    def __init__(self, cell, parent=None):
-        super().__init__(parent)
-        loadUi("design/density_input_dialog.ui", self)
-
-        self.pxSB.setValue(cell.px)
-        self.pySB.setValue(cell.py)
-        self.pzSB.setValue(cell.pz)
-
-    def get_inputs(self):
-        return self.pxSB.value(), self.pySB.value(), self.pzSB.value()
 
 
 app = QApplication(sys.argv)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>984</width>
-    <height>600</height>
+    <width>706</width>
+    <height>809</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_direct">
        <attribute name="title">
@@ -653,9 +653,6 @@
                   </property>
                  </widget>
                 </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="alfaRegularizationSB"/>
-                </item>
                </layout>
               </item>
               <item>
@@ -776,7 +773,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>984</width>
+     <width>706</width>
      <height>24</height>
     </rect>
    </property>
