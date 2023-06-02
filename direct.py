@@ -1,8 +1,9 @@
 import math
 from matplotlib import pyplot as plt
 
-from extras import Cell, Point, get_mesh, get_receivers, draw_mesh
-from generator import generate_mesh
+from extras import Point, read_receivers_from_file, draw_mesh
+from extras.generator import generate_mesh
+
 
 def get_receivers_result(path: str) -> list:
     receivers = []
@@ -14,7 +15,7 @@ def get_receivers_result(path: str) -> list:
     return receivers
 
 
-cells_path = 'cells_1.dat'
+cells_path = 'meshes/cells_1.mes'
 receivers_path = 'receivers.dat'
 
 # mesh = get_mesh(cells_path)
@@ -69,7 +70,7 @@ plt.grid()
 plt.savefig('x_component.png')
 
 
-recvs = get_receivers(receivers_results_path)
+recvs = read_receivers_from_file(receivers_results_path)
 # print(recvs)
 
 draw_mesh('mesh.png', mesh=mesh, receivers=recvs)
