@@ -6,7 +6,7 @@ from matplotlib.patches import Rectangle
 from extras import Cell, Receiver
 
 
-def get_receivers(path: str) -> list:
+def read_receivers_from_file(path: str) -> list:
     receivers = []
     for f in open(path):
         buf = [float(attr) for attr in f.split(' ')]
@@ -14,24 +14,19 @@ def get_receivers(path: str) -> list:
     return receivers
 
 
-def write_receivers(path: str, receivers: list[Receiver]):
+def write_receivers_to_file(path: str, receivers: list[Receiver]):
     with open(path, mode="w") as f:
         for receiver in receivers:
             f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, receiver.bx, receiver.by, receiver.bz))) + "\n")
 
 
-def get_mesh(path: str) -> list:
+def read_mesh_from_file(path: str) -> list:
     # cells = []
     with open(path, 'r') as f:
         lines = f.readlines()
         print(lines[0])
         length, width, height = lines[0].split(' ')
-        cells = [Cell(float(attr[0]),
-                      float(attr[1]),
-                      float(attr[2]),
-                      float(length),
-                      float(width),
-                      float(height)) for attr in [line.split(' ') for line in lines[1:]]]
+        cells = [Cell(*list(map(float, attr[0:3])), *list(map(float, (length, width, height))), *list(map(float, attr[3:]))) for attr in [line.split(' ') for line in lines[1:]]]
         # cells
     # for f in open(path):
     #     buf = [float(attr) for attr in f.split(' ')]
@@ -41,6 +36,13 @@ def get_mesh(path: str) -> list:
         #                   buf[2],
         #                   buf[3]))
     return cells
+
+
+def write_mesh_to_file(fname, mesh):
+    with open(fname, mode='w') as f:
+        f.write(" ".join(map(str, (mesh[0].length, mesh[0].width, mesh[0].height))) + '\n')
+        for cell in mesh:
+            f.write(" ".join(map(str, (cell.x, cell.y, cell.z, cell.px, cell.py, cell.pz))) + '\n')
 
 
 def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None):
@@ -89,7 +91,7 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
     figure.canvas.draw()
 
 
-def calculate_receivers(mesh: list, receivers: list):
+def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:
     for receiver in receivers:
         Bx, By, Bz = 0, 0, 0
         # By = 0
@@ -117,9 +119,10 @@ def calculate_receivers(mesh: list, receivers: list):
         receiver.bx = Bx
         receiver.by = By
         receiver.bz = Bz
+    return receivers
 
 
-def calculate_mesh(mesh: list, receivers: list, alfa: float):
+def calculate_mesh(mesh: list, receivers: list, alfa: float) -> list[Cell]:
     L = np.zeros(shape=(len(receivers) * 3, len(mesh) * 3))
     for i, r in enumerate(receivers):
         for j, c in enumerate(mesh):

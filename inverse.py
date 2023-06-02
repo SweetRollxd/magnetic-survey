@@ -2,14 +2,14 @@ import math
 
 import numpy as np
 
-from extras import Point, get_receivers, draw_mesh
+from extras import Point, read_receivers_from_file, draw_mesh
 from extras.generator import generate_mesh
 
 receivers_results_path = 'receivers_results.dat'
 mesh_path = 'mesh_16.dat'
 
 # mesh = get_mesh(mesh_path)
-receivers = get_receivers(receivers_results_path)
+receivers = read_receivers_from_file(receivers_results_path)
 start_pnt = Point(-500, -50, 0)
 end_pnt = Point(400, 50, -300)
 mesh = generate_mesh(start_pnt, end_pnt, 9, 1, 6)

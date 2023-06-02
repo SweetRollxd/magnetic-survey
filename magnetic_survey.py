@@ -66,7 +66,6 @@ class MainWindow(QMainWindow):
 
     @property
     def mesh(self):
-        # print("Mesh getter is called")
         if self.tabWidget.currentIndex() == 0:
             return self.direct_mesh
         else:
@@ -74,17 +73,13 @@ class MainWindow(QMainWindow):
 
     @mesh.setter
     def mesh(self, mesh: list):
-        # print("Mesh setter is called")
         if self.tabWidget.currentIndex() == 0:
-            # print("Setting direct mesh")
             self.direct_mesh = mesh
         else:
-            # print("Setting inverse mesh")
             self.inverse_mesh = mesh
 
     @property
     def mesh_figure(self):
-        # print(self.tabWidget.currentIndex())
         if self.tabWidget.currentIndex() == 0:
             return self.direct_mesh_figure
         else:
@@ -92,7 +87,6 @@ class MainWindow(QMainWindow):
 
     @property
     def mesh_canvas(self):
-        # print(self.tabWidget.currentIndex())
         if self.tabWidget.currentIndex() == 0:
             return self.direct_mesh_canvas
         else:
@@ -133,43 +127,21 @@ class MainWindow(QMainWindow):
     def on_draw_btn_click(self):
         try:
             mesh_controls = self.get_mesh_controls()
-            if mesh_controls['x_cnt'] == 0 or mesh_controls['y_cnt'] == 0 or mesh_controls['z_cnt'] == 0:
-                # start_pnt = Point(-500, -50, 0)
-                # end_pnt = Point(400, 50, -300)
-                # self.mesh = generate_mesh(start_pnt, end_pnt, 9, 1, 6)
-                start_pnt = Point(-100, -50, -100)
-                end_pnt = Point(100, 50, -200)
-                self.mesh = generator.generate_mesh(start_pnt, end_pnt, 2, 1, 2)
-            else:
-                start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
-                end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
-                self.mesh = generator.generate_mesh(start_pnt, end_pnt, mesh_controls['x_cnt'], mesh_controls['y_cnt'], mesh_controls['z_cnt'])
-
-            # for cell in self.mesh:
-            #     cell.px = 1
+            start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
+            end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
+            self.mesh = generator.generate_mesh(start_pnt, end_pnt, mesh_controls['x_cnt'], mesh_controls['y_cnt'], mesh_controls['z_cnt'])
 
             print(f"Mesh: {self.mesh}")
             custom_functions.draw_mesh(self.mesh_figure,
                                        self.mesh,
                                        self.receivers if self.draw_receivers_checkbox_is_checked() else None)
-            # self.__draw_mesh()
-            # if not self.addReceiversBtn.isEnabled():
-            #     self.addReceiversBtn.setEnabled(True)
 
         except ValueError as e:
-            # msg = QMessageBox()
-            # msg.setIcon(QMessageBox.Warning)
-            # msg.setText("Неверное значение")
-            # msg.setInformativeText(f'Было введено некорректное значение:\n{e.__str__()}')
-            # msg.setWindowTitle("Ошибка")
             msg = CustomMessageBox(QMessageBox.Warning, text=e.__str__())
             msg.exec_()
             print(traceback.print_exc())
 
     def on_mesh_click(self, event):
-        # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-        #       ('double' if event.dblclick else 'single', event.button,
-        #        event.x, event.y, event.xdata, event.ydata))
         axes = self.direct_mesh_figure.get_axes()
         if len(axes) == 0:
             return
@@ -207,17 +179,9 @@ class MainWindow(QMainWindow):
                                        self.receivers if self.draw_receivers_checkbox_is_checked() else None)
 
     def on_add_receivers_btn_click(self):
-        # self.receivers = generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
-        if self.rcvCntSB.value() == 0:
-            self.receivers = generator.generate_receivers(-600, 600, 20)
-        else:
-            self.receivers = generator.generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
-
+        self.receivers = generator.generate_receivers(self.rcvXStartSB.value(), self.rcvXEndSB.value(), self.rcvCntSB.value())
         if self.draw_receivers_checkbox_is_checked():
             custom_functions.draw_mesh(self.mesh_figure, self.mesh, self.receivers)
-
-        # if not self.directCalculateBtn.isEnabled() and len(self.mesh_figure.get_axes()):
-        #     self.directCalculateBtn.setEnabled(True)
 
     def on_clear_mesh_btn_click(self):
         self.mesh_figure.clear()
@@ -227,31 +191,24 @@ class MainWindow(QMainWindow):
         self.plot_canvas.draw()
         self.mesh_canvas.draw()
 
-    # TODO: вынести функционал сохранения в отдельную функцию
-    # TODO: сохранять значения сетки в ячейках
     def on_save_mesh_btn_click(self):
         if len(self.mesh) == 0:
             msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.NO_MESH)
             msg.exec_()
             return
         fname, _ = QFileDialog.getSaveFileName(self, "Выберите расположение файла", "./meshes", ".mes (*.mes)")
-        print(self.mesh)
-        print(fname)
         if fname:
-            with open(fname, 'w') as f:
-                f.write(" ".join(map(str, (self.mesh[0].length, self.mesh[0].width, self.mesh[0].height))) + '\n')
-                for cell in self.mesh:
-                    f.write(" ".join(map(str, (cell.x, cell.y, cell.z))) + '\n')
+            custom_functions.write_mesh_to_file(fname, self.mesh)
 
     def on_save_receivers_btn_click(self):
         fname, _ = QFileDialog.getSaveFileName(self, "Выберите расположение файла", "./results", ".dat (*.dat)")
-        custom_functions.write_receivers(fname, self.receivers)
+        custom_functions.write_receivers_to_file(fname, self.receivers)
 
     def on_open_mesh_action_click(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./meshes", ".mes (*.mes)")
         print(fname)
         if fname:
-            self.mesh = custom_functions.get_mesh(fname)
+            self.mesh = custom_functions.read_mesh_from_file(fname)
             custom_functions.draw_mesh(self.mesh_figure, self.mesh)
             print(self.mesh)
             # self.xStartSB.setValue(self.mesh[0].x - self.mesh[0].length/2)
@@ -273,8 +230,6 @@ class MainWindow(QMainWindow):
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
         custom_functions.draw_mesh(self.mesh_figure, self.mesh)
         custom_functions.draw_mesh(self.orig_mesh_figure, self.direct_mesh)
-        # self.__draw_mesh()
-        # self.__draw_mesh_static(self.orig_mesh_figure, self.direct_mesh)
 
     def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
         self.plot_figure.clear()

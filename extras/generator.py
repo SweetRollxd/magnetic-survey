@@ -5,7 +5,7 @@ def generate_mesh(point_start: Point,
                   point_end: Point,
                   count_x: int = 1,
                   count_y: int = 1,
-                  count_z: int = 1):
+                  count_z: int = 1) -> list[Cell]:
 
     mesh = []
     if count_x == 0 or count_y == 0 or count_z == 0:
@@ -32,7 +32,7 @@ def generate_mesh(point_start: Point,
     return mesh
 
 
-def generate_receivers(x_start: float, x_end: float, count: int):
+def generate_receivers(x_start: float, x_end: float, count: int) -> list[Receiver]:
     if count == 0:
         raise ValueError("Receivers count equals 0")
     receivers = []

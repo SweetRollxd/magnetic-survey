@@ -1,7 +1,7 @@
 import math
 from matplotlib import pyplot as plt
 
-from extras import Point, get_receivers, draw_mesh
+from extras import Point, read_receivers_from_file, draw_mesh
 from extras.generator import generate_mesh
 
 
@@ -70,7 +70,7 @@ plt.grid()
 plt.savefig('x_component.png')
 
 
-recvs = get_receivers(receivers_results_path)
+recvs = read_receivers_from_file(receivers_results_path)
 # print(recvs)
 
 draw_mesh('mesh.png', mesh=mesh, receivers=recvs)
