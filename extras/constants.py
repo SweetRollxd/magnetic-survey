@@ -15,3 +15,4 @@ class TaskType(Enum):
 class MessageTypes(Enum):
     NO_MESH = 0
     NO_RECEIVERS = 1
+    WRONG_INPUT = 2

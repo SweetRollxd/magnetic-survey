@@ -1,10 +1,12 @@
 import sys
 import traceback
+import copy
 import matplotlib.pyplot as plt
 from functools import partial
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QActionGroup
+from PyQt5.QtGui import QIcon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from widgets import DensityInputDialog, CustomMessageBox, ScientificDoubleSpinBox
@@ -16,6 +18,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Magnetic Survey")
         loadUi("design/main.ui", self)
+        self.setWindowIcon(QIcon("resources/icon.ico"))
         self.drawMeshBtn.clicked.connect(self.on_draw_btn_click)
         self.addReceiversBtn.clicked.connect(self.on_add_receivers_btn_click)
         self.directCalculateBtn.clicked.connect(self.on_calculate_direct_btn_click)
@@ -131,13 +134,15 @@ class MainWindow(QMainWindow):
             return self.drawReceiversInverseCheckbox.isChecked()
 
     def on_draw_btn_click(self):
-
         mesh_controls = self.get_mesh_controls()
+        if mesh_controls['z_start'] > 0 or mesh_controls['z_end'] > 0:
+            msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.WRONG_INPUT, "Координата z не можем быть выше уровня земли")
+            msg.exec_()
+            return
         start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
         end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
         self.mesh = generator.generate_mesh(start_pnt, end_pnt, mesh_controls['x_cnt'], mesh_controls['y_cnt'], mesh_controls['z_cnt'])
 
-        print(f"Mesh: {self.mesh}")
         custom_functions.draw_mesh(self.mesh_figure,
                                    self.mesh,
                                    self.receivers if self.draw_receivers_checkbox_is_checked() else None,
@@ -270,13 +275,19 @@ class MainWindow(QMainWindow):
             msg = CustomMessageBox(QMessageBox.Warning, message_type=constants.MessageTypes.NO_RECEIVERS)
             msg.exec_()
             return
+
+        inverse_calculated_receivers = copy.deepcopy(self.receivers)
+        custom_functions.calculate_receivers(self.inverse_mesh, inverse_calculated_receivers)
+
+        receivers_error = custom_functions.calculate_receivers_error(self.receivers, inverse_calculated_receivers)
+        self.statusBar().showMessage(f'Невязка: {receivers_error}')
+
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
         custom_functions.draw_mesh(self.inverse_mesh_figure,
                                    self.inverse_mesh,
                                    self.receivers if self.draw_receivers_checkbox_is_checked() else None,
                                    self.axis,
                                    title="Результаты инверсии")
-        print(self.inverse_mesh_figure.get_axes()[0].get_xlim())
         if self.direct_mesh_figure.get_axes():
             custom_functions.draw_mesh(self.orig_mesh_figure,
                                        self.direct_mesh,

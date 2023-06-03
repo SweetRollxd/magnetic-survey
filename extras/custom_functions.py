@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import copy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import TransformedBbox, Bbox
@@ -56,7 +57,6 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
               title: str = "",
               x_lim: tuple[float, float] = None,
               y_lim: tuple[float, float] = None):
-    print(title)
     figure.clear()
     ax = figure.add_subplot(111)
     ax.set_title(f"{title} ({Axes(axis).name}-компонента)")
@@ -116,7 +116,6 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
             ax.scatter(x, z, marker='|')
 
     figure.canvas.draw()
-    print(f"Xlim: {ax.get_xlim()}, ylim: {ax.get_ylim()}\norig xlim: {x_lim}, orig_ylim: {y_lim}")
 
 
 def draw_plot(figure: plt.Figure,
@@ -137,10 +136,9 @@ def draw_plot(figure: plt.Figure,
     ax.set_xlim(x_lim) if x_lim else None
     ax.set_ylim(y_lim) if y_lim else None
     figure.canvas.draw()
-    print(f"Xlim: {ax.get_xlim()}, ylim: {ax.get_ylim()}\norig xlim: {x_lim}, orig_ylim: {y_lim}")
 
 
-def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:
+def calculate_receivers(mesh: list[Cell], receivers: list[Receiver]) -> list[Receiver]:
     for receiver in receivers:
         Bx, By, Bz = 0, 0, 0
         # By = 0
@@ -172,7 +170,7 @@ def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:
     return receivers
 
 
-def calculate_mesh(mesh: list, receivers: list, alfa: float) -> list[Cell]:
+def calculate_mesh(mesh: list[Cell], receivers: list[Receiver], alfa: float) -> list[Cell]:
     L = np.zeros(shape=(len(receivers) * 3, len(mesh) * 3))
     for i, r in enumerate(receivers):
         for j, c in enumerate(mesh):
@@ -208,3 +206,11 @@ def calculate_mesh(mesh: list, receivers: list, alfa: float) -> list[Cell]:
         c.p = p[i*3:i*3+3]
 
     return mesh
+
+
+def calculate_receivers_error(true_receivers: list[Receiver], calculated_receivers: list[Receiver]) -> float:
+    error = 0
+    for i in range(len(true_receivers)):
+        for j in range(3):
+            error += true_receivers[i].b[j] - calculated_receivers[i].b[j]
+    return error

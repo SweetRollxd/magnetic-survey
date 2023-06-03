@@ -11,11 +11,12 @@ class CustomMessageBox(QMessageBox):
         if message_type == constants.MessageTypes.NO_MESH:
             self.setText("Нет сетки")
             self.setInformativeText('Не была введена или сгенерирована сетка')
-            self.setWindowTitle("Ошибка")
         elif message_type == constants.MessageTypes.NO_RECEIVERS:
             self.setText("Нет приемников")
             self.setInformativeText('Не была загружена или сгенерирована приемная линия')
-            self.setWindowTitle("Ошибка")
+        elif message_type == constants.MessageTypes.WRONG_INPUT:
+            self.setText("Некорректные данные")
+            self.setInformativeText(f'Введены некорректные данные: {text}')
         else:
             self.setText("Неизвестная ошибка")
             self.setInformativeText(f'Произошла непредвиденная ошибка: {text}')
