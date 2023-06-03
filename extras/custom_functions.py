@@ -2,6 +2,7 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.transforms import TransformedBbox, Bbox
 
 from extras import Cell, Receiver
 from extras.constants import Axes
@@ -69,17 +70,28 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
     ax.set_ylabel('Z, м')
     ax.set_xlabel('X, м')
     values = [cell.p[axis.value] for cell in mesh]
-    min_value = min(values)
-    max_value = max(values)
+    # min_value = min(values)
+    # max_value = max(values)
+    min_value = 0
+    max_value = 1
 
-    # TODO: исправить костыль
-    if min_value > 0:
-        min_value = 0
-    if min_value == max_value:
-        max_value += max_value + 1
-    print(f"Min: {min_value}, max: {max_value}")
+    # if min_value > 0:
+    #     min_value = 0
+    # if max_value > 1:
+    #     max_value = 1
+    # if min_value == max_value:
+    #     max_value += max_value + 1
+    # print(f"Min: {min_value}, max: {max_value}")
+
     for cell in mesh:
-        normalized_value = (cell.p[axis.value] - min_value) / (max_value - min_value)
+        value = cell.p[axis.value]
+        # normalized_value = (value - min_value) / (max_value - min_value)
+        if value > 1:
+            normalized_value = 1
+        elif value < 0:
+            normalized_value = 0
+        else:
+            normalized_value = (value - min_value) / (max_value - min_value)
         text_color = 'w' if normalized_value >= 0.5 else 'k'
         rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
                          cell.length,
@@ -88,7 +100,8 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
                          edgecolor='k',
                          facecolor=f'{1 - normalized_value}')
         ax.add_patch(rect)
-        ax.annotate(round(cell.p[axis.value], 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
+        box = TransformedBbox(Bbox([[cell.x - cell.length / 2, cell.z - cell.height / 2], [cell.x + cell.length / 2, cell.z + cell.height / 2]]), ax.transData)
+        ax.annotate(round(cell.p[axis.value], 1), (cell.x, cell.z), ha='center', va='center', color=text_color, clip_box=box)
 
     ax.plot()
     ax.set_xlim(x_lim) if x_lim else None
@@ -100,7 +113,7 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
         for r in receivers:
             x.append(r.x)
             z.append(r.z)
-            ax.scatter(x, z)
+            ax.scatter(x, z, marker='|')
 
     figure.canvas.draw()
     print(f"Xlim: {ax.get_xlim()}, ylim: {ax.get_ylim()}\norig xlim: {x_lim}, orig_ylim: {y_lim}")
@@ -118,7 +131,7 @@ def draw_plot(figure: plt.Figure,
     ax.set_title(f"{Axes(axis).name}-компонента магнитного поля B")
     x = [receiver.x for receiver in receivers]
     values = [receiver.b[axis.value] for receiver in receivers]
-    ax.plot(x, values, marker="o")
+    ax.plot(x, values)
     ax.grid()
 
     ax.set_xlim(x_lim) if x_lim else None
