@@ -212,5 +212,5 @@ def calculate_receivers_error(true_receivers: list[Receiver], calculated_receive
     error = 0
     for i in range(len(true_receivers)):
         for j in range(3):
-            error += true_receivers[i].b[j] - calculated_receivers[i].b[j]
+            error += math.pow(true_receivers[i].b[j] - calculated_receivers[i].b[j], 2)
     return error

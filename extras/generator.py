@@ -40,7 +40,7 @@ def generate_receivers(x_start: float, x_end: float, count: int) -> list[Receive
 
     dx = (x_end - x_start) / count
     for i in range(count):
-        receivers.append(Receiver(x, 0, 0))
+        receivers.append(Receiver(x, 0, 50))
         x += dx
     return receivers
 
