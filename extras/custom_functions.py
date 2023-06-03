@@ -163,9 +163,6 @@ def calculate_receivers(mesh: list[Cell], receivers: list[Receiver]) -> list[Rec
                     cell.p[1] * (3 * dy * dz / distance ** 2) +
                     cell.p[2] * (3 * dz * dz / distance ** 2 - 1)
             )
-        # receiver.bx = Bx
-        # receiver.by = By
-        # receiver.bz = Bz
         receiver.b = (Bx, By, Bz)
     return receivers
 
@@ -195,8 +192,6 @@ def calculate_mesh(mesh: list[Cell], receivers: list[Receiver], alfa: float) -> 
 
     A = np.matmul(L.transpose(), L)
     b = np.matmul(L.transpose(), S)
-    # print(f"A = {A}")
-    # print(f"b = {b}")
 
     ones = np.eye(len(A))
     regularizedA = A + np.dot(alfa, ones)

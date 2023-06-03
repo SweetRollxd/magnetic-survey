@@ -124,7 +124,7 @@
                         <double>-10000.000000000000000</double>
                        </property>
                        <property name="maximum">
-                        <double>10000.000000000000000</double>
+                        <double>0.000000000000000</double>
                        </property>
                        <property name="value">
                         <double>-100.000000000000000</double>
@@ -174,7 +174,7 @@
                         <double>-10000.000000000000000</double>
                        </property>
                        <property name="maximum">
-                        <double>10000.000000000000000</double>
+                        <double>0.000000000000000</double>
                        </property>
                        <property name="value">
                         <double>-200.000000000000000</double>
@@ -194,6 +194,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="xCntSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>2</number>
                        </property>
@@ -201,6 +204,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="yCntSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>1</number>
                        </property>
@@ -208,6 +214,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="zCntSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>2</number>
                        </property>
@@ -304,6 +313,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="rcvCntSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="maximum">
                         <number>10000</number>
                        </property>
@@ -587,7 +599,7 @@
                         <double>-10000.000000000000000</double>
                        </property>
                        <property name="maximum">
-                        <double>10000.000000000000000</double>
+                        <double>0.000000000000000</double>
                        </property>
                       </widget>
                      </item>
@@ -634,7 +646,7 @@
                         <double>-10000.000000000000000</double>
                        </property>
                        <property name="maximum">
-                        <double>10000.000000000000000</double>
+                        <double>0.000000000000000</double>
                        </property>
                        <property name="value">
                         <double>-300.000000000000000</double>
@@ -654,6 +666,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="xCntInverseSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>9</number>
                        </property>
@@ -661,6 +676,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="yCntInverseSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>1</number>
                        </property>
@@ -668,6 +686,9 @@
                      </item>
                      <item>
                       <widget class="QSpinBox" name="zCntInverseSB">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
                        <property name="value">
                         <number>6</number>
                        </property>
@@ -872,6 +893,7 @@
    <addaction name="menu"/>
    <addaction name="menu_2"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="saveMeshAction">
    <property name="text">
     <string>Сохранить сетку</string>

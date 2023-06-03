@@ -280,7 +280,8 @@ class MainWindow(QMainWindow):
         custom_functions.calculate_receivers(self.inverse_mesh, inverse_calculated_receivers)
 
         receivers_error = custom_functions.calculate_receivers_error(self.receivers, inverse_calculated_receivers)
-        self.statusBar().showMessage(f'Невязка: {receivers_error}')
+        print(receivers_error)
+        self.statusBar.showMessage(f'Значение функционала: {receivers_error}')
 
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
         custom_functions.draw_mesh(self.inverse_mesh_figure,
