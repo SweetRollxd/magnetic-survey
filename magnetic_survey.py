@@ -28,7 +28,8 @@ class MainWindow(QMainWindow):
 
         self.saveMeshAction.triggered.connect(self.on_save_mesh_action_click)
         self.openMeshAction.triggered.connect(self.on_open_mesh_action_click)
-        self.openReceiversAction.triggered.connect(self.on_open_receivers_action)
+        self.openReceiversAction.triggered.connect(self.on_open_receivers_action_click)
+        self.closeAction.triggered.connect(self.on_closed_action_click)
 
         self.alfaRegularizationSB = ScientificDoubleSpinBox()
         self.verticalLayout_10.addWidget(self.alfaRegularizationSB)
@@ -130,22 +131,17 @@ class MainWindow(QMainWindow):
             return self.drawReceiversInverseCheckbox.isChecked()
 
     def on_draw_btn_click(self):
-        try:
-            mesh_controls = self.get_mesh_controls()
-            start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
-            end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
-            self.mesh = generator.generate_mesh(start_pnt, end_pnt, mesh_controls['x_cnt'], mesh_controls['y_cnt'], mesh_controls['z_cnt'])
 
-            print(f"Mesh: {self.mesh}")
-            custom_functions.draw_mesh(self.mesh_figure,
-                                       self.mesh,
-                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
-                                       title="Исходная модель" if self.tabWidget.currentIndex() == 0 else "Результаты инверсии")
+        mesh_controls = self.get_mesh_controls()
+        start_pnt = Point(mesh_controls['x_start'], mesh_controls['y_start'], mesh_controls['z_start'])
+        end_pnt = Point(mesh_controls['x_end'], mesh_controls['y_end'], mesh_controls['z_end'])
+        self.mesh = generator.generate_mesh(start_pnt, end_pnt, mesh_controls['x_cnt'], mesh_controls['y_cnt'], mesh_controls['z_cnt'])
 
-        except ValueError as e:
-            msg = CustomMessageBox(QMessageBox.Warning, text=e.__str__())
-            msg.exec_()
-            print(traceback.print_exc())
+        print(f"Mesh: {self.mesh}")
+        custom_functions.draw_mesh(self.mesh_figure,
+                                   self.mesh,
+                                   self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                   title="Исходная модель" if self.tabWidget.currentIndex() == 0 else "Результаты инверсии")
 
     def on_mesh_click(self, event):
         axes = self.direct_mesh_figure.get_axes()
@@ -168,11 +164,9 @@ class MainWindow(QMainWindow):
                         return
                 # при остальных нажатиях редактируем значение плотности
                 else:
-                    print(self.direct_mesh[i])
                     dialog = DensityInputDialog(self.direct_mesh[i])
                     if dialog.exec_():
                         self.direct_mesh[i].p = dialog.get_inputs()
-                        print(self.direct_mesh[i])
                         is_mesh_changed = True
                         break
                     return
@@ -219,49 +213,53 @@ class MainWindow(QMainWindow):
 
     def on_open_mesh_action_click(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с сеткой", "./meshes", ".mes (*.mes)")
-        print(fname)
         if fname:
             self.mesh = custom_functions.read_mesh_from_file(fname)
             custom_functions.draw_mesh(self.mesh_figure, self.mesh, axis=self.axis, title="Исходная модель" if self.tabWidget.currentIndex() == 0 else "Результаты инверсии")
-            print(self.mesh)
 
-    def on_open_receivers_action(self):
+    def on_open_receivers_action_click(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Откройте файл с результатами", "./results", ".dat (*.dat)")
-        print(fname)
         if fname:
             self.receivers = custom_functions.read_receivers_from_file(fname)
-            print(self.receivers)
-            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
-            # print(self.mesh)
+            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis,
+                                       x_lim=self.direct_mesh_figure.get_axes()[0].get_xlim() if self.direct_mesh_figure.get_axes() else None)
 
     def on_axis_group_change(self, axis: constants.Axes):
-        # print(self.axis)
         self.axis = axis
-        print(self.axis)
         if self.direct_mesh_figure.get_axes():
             custom_functions.draw_mesh(self.direct_mesh_figure,
                                        self.direct_mesh,
-                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       self.receivers if self.drawReceiversCheckbox.isChecked() else None,
                                        axis,
                                        title="Исходная модель")
         if self.plot_figure.get_axes():
-            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
+            custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis, x_lim=self.direct_mesh_figure.get_axes()[0].get_xlim() if self.direct_mesh_figure.get_axes() else None)
         if self.inverse_mesh_figure.get_axes():
             custom_functions.draw_mesh(self.inverse_mesh_figure,
                                        self.inverse_mesh,
-                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       self.receivers if self.drawReceiversInverseCheckbox.isChecked() else None,
                                        axis,
                                        title="Результаты инверсии")
         if self.orig_mesh_figure.get_axes():
             custom_functions.draw_mesh(self.orig_mesh_figure,
                                        self.direct_mesh,
-                                       self.receivers if self.draw_receivers_checkbox_is_checked() else None,
+                                       self.receivers if self.drawReceiversInverseCheckbox.isChecked() else None,
                                        axis,
-                                       title="Истинная модель")
+                                       title="Истинная модель",
+                                       x_lim=self.inverse_mesh_figure.get_axes()[0].get_xlim(),
+                                       y_lim=self.inverse_mesh_figure.get_axes()[0].get_ylim())
 
     def on_calculate_direct_btn_click(self):
+        if len(self.mesh) == 0:
+            msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.NO_MESH)
+            msg.exec_()
+            return
+        if len(self.receivers) == 0:
+            msg = CustomMessageBox(QMessageBox.Warning, constants.MessageTypes.NO_RECEIVERS)
+            msg.exec_()
+            return
         custom_functions.calculate_receivers(self.direct_mesh, self.receivers)
-        custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis)
+        custom_functions.draw_plot(self.plot_figure, self.receivers, self.axis, x_lim=self.direct_mesh_figure.get_axes()[0].get_xlim())
 
     def on_calculate_inverse_btn_click(self):
         if len(self.mesh) == 0:
@@ -273,29 +271,23 @@ class MainWindow(QMainWindow):
             msg.exec_()
             return
         self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
-        custom_functions.draw_mesh(self.mesh_figure,
-                                   self.mesh,
+        custom_functions.draw_mesh(self.inverse_mesh_figure,
+                                   self.inverse_mesh,
                                    self.receivers if self.draw_receivers_checkbox_is_checked() else None,
                                    self.axis,
                                    title="Результаты инверсии")
+        print(self.inverse_mesh_figure.get_axes()[0].get_xlim())
         if self.direct_mesh_figure.get_axes():
             custom_functions.draw_mesh(self.orig_mesh_figure,
                                        self.direct_mesh,
                                        self.receivers if self.draw_receivers_checkbox_is_checked() else None,
                                        axis=self.axis,
-                                       title="Истинная модель")
+                                       title="Истинная модель",
+                                       x_lim=self.inverse_mesh_figure.get_axes()[0].get_xlim(),
+                                       y_lim=self.inverse_mesh_figure.get_axes()[0].get_ylim())
 
-    # def __draw_plot(self, receivers, axis: constants.Axes = constants.Axes.X_AXIS):
-    #     self.plot_figure.clear()
-    #     ax = self.plot_figure.add_subplot(111)
-    #     ax.set_title("X-компонента магнитного поля B")
-    #     x = [receiver.x for receiver in receivers]
-    #     bx = [receiver.bx for receiver in receivers]
-    #     ax.plot(x, bx, marker="o")
-    #     ax.grid()
-    #     if self.direct_mesh_figure.get_axes():
-    #         ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
-    #     self.plot_canvas.draw()
+    def on_closed_action_click(self):
+        self.close()
 
 
 def except_hook(exc_type, exc_value, exc_tb):

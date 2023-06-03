@@ -49,37 +49,26 @@ def write_mesh_to_file(fname, mesh):
             f.write(" ".join(map(str, (cell.x, cell.y, cell.z, cell.p[0], cell.p[1], cell.p[2]))) + '\n')
 
 
-def get_density_by_axis(mesh: list[Cell], axis: Axes = Axes.X):
-    if axis == Axes.X:
-        return [cell.p[0] for cell in mesh]
-    elif axis == Axes.Y:
-        return [cell.p[1] for cell in mesh]
-    elif axis == Axes.Z:
-        return [cell.p[2] for cell in mesh]
-    else:
-        raise ValueError("Invalid axis provided")
-
-
-def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = None, axis: Axes = Axes.X, title: str = ""):
-
+def draw_mesh(figure: plt.Figure, mesh: list[Cell],
+              receivers: list[Receiver] = None,
+              axis: Axes = Axes.X,
+              title: str = "",
+              x_lim: tuple[float, float] = None,
+              y_lim: tuple[float, float] = None):
+    print(title)
     figure.clear()
     ax = figure.add_subplot(111)
-    ax.set_title(title)
+    ax.set_title(f"{title} ({Axes(axis).name}-компонента)")
 
-    ax.axis('equal')
+    # ax.axis('equal')
     ax.axhline(y=0, color='k', linewidth=1)
     ax.axvline(x=0, color='k', linewidth=1)
     ax.grid(True)
     ax.set_axisbelow(True)
 
-    # values = get_density_by_axis(mesh, axis)
     ax.set_ylabel('Z, м')
     ax.set_xlabel('X, м')
-    print(f"Mesh {mesh}")
-    print(axis.value)
     values = [cell.p[axis.value] for cell in mesh]
-    # min_p[0] = min(mesh, key=lambda cell: cell.p[0]).p[0]
-    # max_p[0] = max(mesh, key=lambda cell: cell.p[0]).p[0]
     min_value = min(values)
     max_value = max(values)
 
@@ -102,6 +91,8 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
         ax.annotate(round(cell.p[axis.value], 1), (cell.x, cell.z), ha='center', va='center', color=text_color)
 
     ax.plot()
+    ax.set_xlim(x_lim) if x_lim else None
+    ax.set_ylim(y_lim) if y_lim else None
 
     if receivers is not None:
         x = []
@@ -112,9 +103,14 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell], receivers: list[Receiver] = 
             ax.scatter(x, z)
 
     figure.canvas.draw()
+    print(f"Xlim: {ax.get_xlim()}, ylim: {ax.get_ylim()}\norig xlim: {x_lim}, orig_ylim: {y_lim}")
 
 
-def draw_plot(figure: plt.Figure, receivers: list[Receiver], axis: Axes = Axes.X):
+def draw_plot(figure: plt.Figure,
+              receivers: list[Receiver],
+              axis: Axes = Axes.X,
+              x_lim: tuple[float, float] = None,
+              y_lim: tuple[float, float] = None):
     figure.clear()
     ax = figure.add_subplot(111)
     ax.set_xlabel('X, м')
@@ -124,9 +120,11 @@ def draw_plot(figure: plt.Figure, receivers: list[Receiver], axis: Axes = Axes.X
     values = [receiver.b[axis.value] for receiver in receivers]
     ax.plot(x, values, marker="o")
     ax.grid()
-    # if self.direct_mesh_figure.get_axes():
-    #     ax.set_xlim(self.direct_mesh_figure.get_axes()[0].get_xlim())
+
+    ax.set_xlim(x_lim) if x_lim else None
+    ax.set_ylim(y_lim) if y_lim else None
     figure.canvas.draw()
+    print(f"Xlim: {ax.get_xlim()}, ylim: {ax.get_ylim()}\norig xlim: {x_lim}, orig_ylim: {y_lim}")
 
 
 def calculate_receivers(mesh: list, receivers: list) -> list[Receiver]:

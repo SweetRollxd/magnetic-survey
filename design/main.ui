@@ -845,6 +845,8 @@
     </widget>
     <addaction name="menu_3"/>
     <addaction name="saveMeshAction"/>
+    <addaction name="separator"/>
+    <addaction name="closeAction"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -927,6 +929,11 @@
    </property>
    <property name="text">
     <string>z-компонента</string>
+   </property>
+  </action>
+  <action name="closeAction">
+   <property name="text">
+    <string>Закрыть</string>
    </property>
   </action>
  </widget>
