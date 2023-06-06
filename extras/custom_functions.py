@@ -193,6 +193,8 @@ def calculate_mesh(mesh: list[Cell], receivers: list[Receiver], alfa: float) -> 
     A = np.matmul(L.transpose(), L)
     b = np.matmul(L.transpose(), S)
 
+    # print(f"Alfa={alfa}, A={A}, b={b}")
+
     ones = np.eye(len(A))
     regularizedA = A + np.dot(alfa, ones)
     p = np.linalg.solve(regularizedA, b)

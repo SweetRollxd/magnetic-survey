@@ -1,8 +1,11 @@
 import sys
 import traceback
 import copy
+import numpy as np
 import matplotlib.pyplot as plt
 from functools import partial
+from scipy.optimize import minimize, basinhopping
+# from scipy.optimize
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QActionGroup
@@ -276,14 +279,25 @@ class MainWindow(QMainWindow):
             msg.exec_()
             return
 
-        inverse_calculated_receivers = copy.deepcopy(self.receivers)
-        custom_functions.calculate_receivers(self.inverse_mesh, inverse_calculated_receivers)
+        if self.alfaRegularizationSB.value() == 0:
+            x0 = np.array([0])
+            res = minimize(self.error_minimization_function, x0, method="L-BFGS-B", bounds=[(0, 1),])
+            # res = basinhopping(self.error_minimization_function, x0, minimizer_kwargs={"method": "L-BFGS-B", "bounds": [(0, 1),]})
+            self.alfaRegularizationSB.setValue(res['x'][0])
+            self.statusBar.showMessage(f'Значение функционала: {res["fun"]}')
+            print(res)
+        else:
 
-        receivers_error = custom_functions.calculate_receivers_error(self.receivers, inverse_calculated_receivers)
-        print(receivers_error)
-        self.statusBar.showMessage(f'Значение функционала: {receivers_error}')
+            self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
 
-        self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, self.alfaRegularizationSB.value())
+            inverse_calculated_receivers = copy.deepcopy(self.receivers)
+            custom_functions.calculate_receivers(self.inverse_mesh, inverse_calculated_receivers)
+
+            receivers_error = custom_functions.calculate_receivers_error(self.receivers, inverse_calculated_receivers)
+            print(receivers_error)
+            self.statusBar.showMessage(f'Значение функционала: {receivers_error}')
+
+
         custom_functions.draw_mesh(self.inverse_mesh_figure,
                                    self.inverse_mesh,
                                    self.receivers if self.draw_receivers_checkbox_is_checked() else None,
@@ -298,6 +312,15 @@ class MainWindow(QMainWindow):
                                        x_lim=self.inverse_mesh_figure.get_axes()[0].get_xlim(),
                                        y_lim=self.inverse_mesh_figure.get_axes()[0].get_ylim())
 
+    def error_minimization_function(self, alfa):
+        alfa = alfa[0]
+        self.inverse_mesh = custom_functions.calculate_mesh(self.inverse_mesh, self.receivers, alfa)
+        inverse_calculated_receivers = copy.deepcopy(self.receivers)
+        custom_functions.calculate_receivers(self.inverse_mesh, inverse_calculated_receivers)
+        receivers_error = custom_functions.calculate_receivers_error(self.receivers, inverse_calculated_receivers)
+        print(f"Alfa = {alfa}, error = {receivers_error}")
+        return receivers_error
+
     def on_closed_action_click(self):
         self.close()
 
@@ -308,7 +331,6 @@ def except_hook(exc_type, exc_value, exc_tb):
     msg.exec_()
     print(traceback.print_exc())
     print("error message:\n", tb)
-    # QtWidgets.QApplication.quit()
 
 
 sys.excepthook = except_hook
