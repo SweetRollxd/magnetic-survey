@@ -68,7 +68,7 @@ if __name__ == "__main__":
     [print(area) for area in areas]
     dataset_size = 100
 
-    for i in range(0, 100):
+    for i in range(dataset_size):
         anomalous_area = areas[random.randint(0, len(areas)-1)]
         print(f"Anomalous area = {anomalous_area}")
         for cell in mesh:

@@ -4,12 +4,13 @@ import copy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import TransformedBbox, Bbox
+import os
 
 from extras import Cell, Receiver
 from extras.constants import Axes
 
 
-def read_receivers_from_file(fname: str) -> list:
+def read_receivers_from_file(fname: str | os.PathLike) -> list:
     receivers = []
     for f in open(fname):
         buf = [float(attr) for attr in f.split(' ')]
@@ -25,7 +26,7 @@ def write_receivers_to_file(fname: str, receivers: list[Receiver]):
             f.write(" ".join(map(str, (receiver.x, receiver.y, receiver.z, *receiver.b))) + "\n")
 
 
-def read_mesh_from_file(fname: str) -> list:
+def read_mesh_from_file(fname: str | os.PathLike) -> list:
     with open(fname, 'r') as f:
         lines = f.readlines()
         print(lines[0])
