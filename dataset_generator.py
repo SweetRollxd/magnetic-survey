@@ -67,7 +67,7 @@ if __name__ == "__main__":
     areas = generate_areas(Nx, Nz)
     [print(area) for area in areas]
     dataset_size = 100
-
+    dataset_name = "dataset_0"
     for i in range(dataset_size):
         anomalous_area = areas[random.randint(0, len(areas)-1)]
         print(f"Anomalous area = {anomalous_area}")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 cell.p = (1, 0, 0)
 
         [print(cell) for cell in mesh]
-        dataset_path = "./datasets/dataset_0"
+        dataset_path = f"./datasets/{dataset_name}"
         write_mesh_to_file(f"{dataset_path}/mesh_{i}.mes", mesh)
 
         receivers = generate_receivers(start_pnt.x, end_pnt.x, 40)
