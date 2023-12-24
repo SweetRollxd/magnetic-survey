@@ -60,7 +60,7 @@ class Network:
         # sig_sig = np.dot(sig_weights, sigmoid(self.hidden_layer, derivative=True))
         d_weights1 = np.dot(self.inputs.T, dw1)
 
-        alpha = 0.01
+        alpha = 0.001
         # update the weights with the derivative (slope) of the loss function
         self.weights1 += alpha * d_weights1
         self.weights2 += alpha * d_weights2
@@ -91,18 +91,20 @@ class Network:
             batch_x = [x[ind] for ind in random_indexes]
             batch_y = [y[ind] for ind in random_indexes]
             # print(f"{}len)
+            batch_errors_array = []
             for i in range(len(random_indexes)):
                 receiver_x = np.array([batch_x[i]])
                 cell_y = np.array([batch_y[i]])
                 self.feedforward(receiver_x)
                 err = self.mse(y).mean()
-                errors.append(err)
+                batch_errors_array.append(err)
                 self.backpropagation(cell_y)
-
+            errors.append(np.array(batch_errors_array).mean())
         return errors
 
-    def predict(self):
-        pass
+    def predict(self, x):
+        self.feedforward(x)
+        return self.output
 
 
 if __name__ == '__main__':
@@ -124,8 +126,12 @@ if __name__ == '__main__':
         # print(f"Size of output: {len(cell_outputs)}")
         #
         # print(f"Input layer = {receiver_inputs}")
-    err = network.train_ds(dataset_x, dataset_y, epoch=20)
+    err = network.train_ds(dataset_x, dataset_y, epoch=100)
     print(f"Len of err = {len(err)}")
     print(err)
+
+    res = network.predict(dataset_x[0],)
+    print(f"Res = {res}")
+
     # network.t
 
