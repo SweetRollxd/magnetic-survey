@@ -60,7 +60,8 @@ class Network:
         # sig_sig = np.dot(sig_weights, sigmoid(self.hidden_layer, derivative=True))
         d_weights1 = np.dot(self.inputs.T, dw1)
 
-        alpha = 0.001
+        alpha = 0.01
+        # alpha = 1
         # update the weights with the derivative (slope) of the loss function
         self.weights1 += alpha * d_weights1
         self.weights2 += alpha * d_weights2
@@ -127,8 +128,8 @@ if __name__ == '__main__':
         #
         # print(f"Input layer = {receiver_inputs}")
     err = network.train_ds(dataset_x, dataset_y, epoch=100)
-    print(f"Len of err = {len(err)}")
-    print(err)
+    # print(f"Len of err = {len(err)}")
+    # print(err)
 
     res = network.predict(dataset_x[0],)
     print(f"Res = {res}")

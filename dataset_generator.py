@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 from extras.generator import generate_mesh, generate_receivers
 from extras.cell import Cell
@@ -66,21 +67,22 @@ if __name__ == "__main__":
     # random.seed(102)
     areas = generate_areas(Nx, Nz)
     [print(area) for area in areas]
-    dataset_size = 100
+    dataset_size = 1000
     dataset_name = "dataset_0"
     for i in range(dataset_size):
+        _mesh = deepcopy(mesh)
         anomalous_area = areas[random.randint(0, len(areas)-1)]
         print(f"Anomalous area = {anomalous_area}")
-        for cell in mesh:
+        for cell in _mesh:
             if anomalous_area.contains(cell):
                 cell.p = (1, 0, 0)
 
-        [print(cell) for cell in mesh]
+        [print(cell) for cell in _mesh]
         dataset_path = f"./datasets/{dataset_name}"
-        write_mesh_to_file(f"{dataset_path}/mesh_{i}.mes", mesh)
+        write_mesh_to_file(f"{dataset_path}/mesh_{i}.mes", _mesh)
 
         receivers = generate_receivers(start_pnt.x, end_pnt.x, 40)
-        calculate_receivers(mesh, receivers)
+        calculate_receivers(_mesh, receivers)
         #
         [print(recv) for recv in receivers]
         write_receivers_to_file(f"{dataset_path}/receivers_{i}", receivers)

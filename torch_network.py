@@ -1,11 +1,14 @@
+import os
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
 
-from extras.custom_functions import read_mesh_from_file, read_receivers_from_file
+from extras.custom_functions import read_mesh_from_file, read_receivers_from_file, write_mesh_to_file
+from extras.generator import generate_mesh
+from extras.point import Point
 
 
 def split_dataset(ds, split_factor: float = 0.5):
@@ -14,39 +17,23 @@ def split_dataset(ds, split_factor: float = 0.5):
     return (ds[0][0:split_index], ds[1][0:split_index]), (ds[0][split_index:], ds[1][split_index:])
 
 
-def create_nn(train, test, batch_size=200, learning_rate=0.01, epochs=10, hidden_layer_size: int = 200,
-              log_interval=10):
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.MNIST('../data', train=True, download=True,
-    #                    transform=transforms.Compose([
-    #                        transforms.ToTensor(),
-    #                        transforms.Normalize((0.1307,), (0.3081,))
-    #                    ])),
-    #     batch_size=batch_size, shuffle=True)
-    # test_loader = torch.utils.data.DataLoader(
-    #     datasets.MNIST('../data', train=False, transform=transforms.Compose([
-    #         transforms.ToTensor(),
-    #         transforms.Normalize((0.1307,), (0.3081,))
-    #     ])),
-    #     batch_size=batch_size, shuffle=True)
+class Net(nn.Module):
+    def __init__(self, input_size: int, output_size: int, hidden_layer_size: int = 200):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_layer_size)
+        # self.fc2 = nn.Linear(200, 200)
+        self.fc2 = nn.Linear(hidden_layer_size, output_size)
 
-    class Net(nn.Module):
-        def __init__(self):
-            super(Net, self).__init__()
-            self.fc1 = nn.Linear(len(train[0][0]), hidden_layer_size)
-            # self.fc2 = nn.Linear(200, 200)
-            self.fc2 = nn.Linear(hidden_layer_size, len(train[1][0]))
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        # x = F.tanh(self.fc1(x))
+        # x = F.tanh(self.fc2(x))
 
-        def forward(self, x):
-            x = F.relu(self.fc1(x))
-            x = F.relu(self.fc2(x))
-            # x = F.tanh(self.fc1(x))
-            # x = F.tanh(self.fc2(x))
-            return x
+        return x
 
-    net = Net()
-    print(net)
 
+def train_network(net, train_ds, learning_rate=0.01, epochs=10):
     # create a stochastic gradient descent optimizer
     optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     # create a loss function
@@ -54,6 +41,7 @@ def create_nn(train, test, batch_size=200, learning_rate=0.01, epochs=10, hidden
 
     input_x, output_y = torch.tensor(train_ds[0]), torch.tensor(train_ds[1])
 
+    losses = []
     # run the main training loop
     for epoch in range(epochs):
         # for batch_idx, (data, target) in enumerate(train_loader):
@@ -61,23 +49,24 @@ def create_nn(train, test, batch_size=200, learning_rate=0.01, epochs=10, hidden
         for i in range(len(input_x)):
 
             data, target = Variable(input_x[i]), Variable(output_y[i])
-            # resize data from (batch_size, 1, 28, 28) to (batch_size, 28*28)
-            # data = data.view(-1, 28 * 28)
             optimizer.zero_grad()
             net_out = net(data)
             loss = criterion(net_out, target)
             loss.backward()
             optimizer.step()
-            err += loss.data
+            err += loss.item()
 
-            # if i % log_interval == 0:
             if i == len(input_x) - 1:
-                print(f'Train Epoch: {epoch} [{i}/{len(train_ds[0])}] \tLoss: {loss.data}')
-            #     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-            #         epoch, batch_idx * len(data), len(train_loader.dataset),
-            #                100 * batch_idx / len(train_loader), loss.data))
+                print(f'Train Epoch: {epoch} [{i}/{len(train_ds[0])}] \tLoss: {loss.item()}')
         print(f"Mean loss: {err / len(input_x)}")
-                # run a test loop
+        losses.append(err / len(input_x))
+    return losses
+
+
+def test_network(net, test_ds):
+    # create a loss function
+    criterion = nn.MSELoss()
+
     test_loss = 0
     correct = 0
     # for data, target in test_loader:
@@ -85,27 +74,38 @@ def create_nn(train, test, batch_size=200, learning_rate=0.01, epochs=10, hidden
     with torch.no_grad():
         for i in range(len(input_x)):
             data, target = Variable(input_x[i]), Variable(output_y[i])
-            # data = data.view(-1, 28 * 28)
             net_out = net(data)
-            # sum up batch loss
-            # test_loss += criterion(net_out, target).data[0]
             test_loss += criterion(net_out, target).data
-            # pred = net_out.data.max(1)[1]  # get the index of the max log-probability
             pred = net_out.data
             correct += pred.eq(target.data).sum()
 
-        # test_loss /= len(test_loader.dataset)
         test_loss /= len(input_x)
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             test_loss, correct, len(input_x) * 600,
             100. * correct / (len(input_x) * 600)))
 
 
+def predict(net, ds):
+    return net(torch.tensor(ds))
+
+
+def inverse_net_predict(receivers, mesh, model_path : str = "models/model_0.pkl"):
+    magnetic = [b for r in receivers for b in r.b]
+    net = torch.load(model_path)
+    p = predict(net, magnetic)
+
+    for i, c in enumerate(mesh):
+        c.p = (p[i * 3].item(), p[i * 3 + 1].item(), p[i * 3 + 2].item())
+    # p  = predict()
+    return mesh
+
+
 if __name__ == "__main__":
     run_opt = 2
     dataset_x = []
     dataset_y = []
-    dateset_size = 100
+    dateset_size = 1000
+    model_path = "models/model_1000.pkl"
     for i in range(dateset_size):
         mesh = read_mesh_from_file(f"./datasets/dataset_0/mesh_{i}.mes")
         receivers = read_receivers_from_file(f"datasets/dataset_0/receivers_{i}.dat")
@@ -118,8 +118,20 @@ if __name__ == "__main__":
 
     dataset = (dataset_x, dataset_y)
     train_ds, test_ds = split_dataset(dataset, split_factor=0.8)
-    # print(f"Train dataset = {train_ds}")
-    # print(f"Test dataset = {test_ds}")
-    # print(f"Len of train: {len(train_ds)}, test: {len(test_ds)}")
-    # create_nn(dataset_x, dataset_y, dataset_x[0:2], dataset_y[0:2], epochs=100)
-    create_nn(train_ds, test_ds, hidden_layer_size=200, epochs=100)
+    network = Net(input_size=len(train_ds[0][0]), output_size=len(train_ds[1][0]))
+    losses = train_network(network, train_ds, epochs=100, learning_rate=0.1)
+    torch.save(network, model_path)
+
+    test_network(network, test_ds)
+
+    Nx = 20
+    Nz = 10
+    start_pnt = Point(0, -50, 0)
+    end_pnt = Point(2000, 50, -1000)
+    mesh = generate_mesh(start_pnt, end_pnt, count_x=Nx, count_y=1, count_z=Nz)
+
+    receivers = read_receivers_from_file(f"datasets/dataset_0/receivers_0.dat")
+
+    mesh = inverse_net_predict(receivers, mesh, model_path=model_path)
+    print(mesh)
+    write_mesh_to_file("datasets/results/result_0.mes", mesh)

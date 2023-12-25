@@ -55,8 +55,8 @@ b = np.matmul(L.transpose(), S)
 # print(f"A = {A}")
 # print(f"b = {b}")
 
-# alfa = 10**-5
-alfa = 0
+alfa = 10**-5
+# alfa = 0
 ones = np.eye(len(A))
 regularizedA = A + np.dot(alfa, ones)
 p = np.linalg.solve(regularizedA, b)
@@ -69,4 +69,4 @@ for i, c in enumerate(mesh):
     # print(c, f"px={p[i*3]}, py={p[i*3+1]}, pz={p[i*3+2]}")
     print(c)
 
-draw_mesh('result_mesh.png', mesh, receivers)
+# draw_mesh('result_mesh.png', mesh, receivers)
