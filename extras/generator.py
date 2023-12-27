@@ -16,18 +16,29 @@ def generate_mesh(point_start: Point,
     length = abs(dx)
     width = abs(dy)
     height = abs(dz)
-    x = point_start.x
     print(f"length = {length}, width = {width}, height = {height}")
-    for i in range(count_x):
+    # x = point_start.x
+    # for i in range(count_x):
+    #     y = point_start.y
+    #     for j in range(count_y):
+    #         z = point_start.z
+    #         for k in range(count_z):
+    #             mesh.append(Cell(x + dx/2, y + dy/2, z + dz/2,
+    #                              length, width, height))
+    #             z += dz
+    #         y += dy
+    #     x += dx
+    z = point_start.z
+    for i in range(count_z):
         y = point_start.y
         for j in range(count_y):
-            z = point_start.z
-            for k in range(count_z):
+            x = point_start.x
+            for k in range(count_x):
                 mesh.append(Cell(x + dx/2, y + dy/2, z + dz/2,
                                  length, width, height))
-                z += dz
+                x += dx
             y += dy
-        x += dx
+        z += dz
 
     return mesh
 

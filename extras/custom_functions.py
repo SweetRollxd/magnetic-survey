@@ -119,6 +119,72 @@ def draw_mesh(figure: plt.Figure, mesh: list[Cell],
     figure.canvas.draw()
 
 
+def draw_mesh_ax(ax: plt.Axes, mesh: list[Cell],
+              receivers: list[Receiver] = None,
+              axis: Axes = Axes.X,
+              title: str = "",
+              x_lim: tuple[float, float] = None,
+              y_lim: tuple[float, float] = None):
+    # ax = figure.add_subplot(111)
+    ax.set_title(f"{title} ({Axes(axis).name}-компонента)")
+
+    # ax.axis('equal')
+    ax.axhline(y=0, color='k', linewidth=1)
+    ax.axvline(x=0, color='k', linewidth=1)
+    ax.grid(True)
+    ax.set_axisbelow(True)
+
+    ax.set_ylabel('Z, м')
+    ax.set_xlabel('X, м')
+    values = [cell.p[axis.value] for cell in mesh]
+    # min_value = min(values)
+    # max_value = max(values)
+    min_value = 0
+    max_value = 1
+
+    # if min_value > 0:
+    #     min_value = 0
+    # if max_value > 1:
+    #     max_value = 1
+    # if min_value == max_value:
+    #     max_value += max_value + 1
+    # print(f"Min: {min_value}, max: {max_value}")
+
+    for cell in mesh:
+        value = cell.p[axis.value]
+        # normalized_value = (value - min_value) / (max_value - min_value)
+        if value > 1:
+            normalized_value = 1
+        elif value < 0:
+            normalized_value = 0
+        else:
+            normalized_value = (value - min_value) / (max_value - min_value)
+        text_color = 'w' if normalized_value >= 0.5 else 'k'
+        rect = Rectangle((cell.x - cell.length / 2, cell.z - cell.height / 2),
+                         cell.length,
+                         cell.height,
+                         linewidth=1,
+                         edgecolor='k',
+                         facecolor=f'{1 - normalized_value}')
+        ax.add_patch(rect)
+        box = TransformedBbox(Bbox([[cell.x - cell.length / 2, cell.z - cell.height / 2], [cell.x + cell.length / 2, cell.z + cell.height / 2]]), ax.transData)
+        ax.annotate(round(cell.p[axis.value], 1), (cell.x, cell.z), ha='center', va='center', color=text_color, clip_box=box)
+
+    ax.plot()
+    ax.set_xlim(x_lim) if x_lim else None
+    ax.set_ylim(y_lim) if y_lim else None
+
+    if receivers is not None:
+        x = []
+        z = []
+        for r in receivers:
+            x.append(r.x)
+            z.append(r.z)
+            ax.scatter(x, z, marker='|')
+
+    # figure.canvas.draw()
+
+
 def draw_plot(figure: plt.Figure,
               receivers: list[Receiver],
               axis: Axes = Axes.X,

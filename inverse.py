@@ -55,8 +55,8 @@ b = np.matmul(L.transpose(), S)
 # print(f"A = {A}")
 # print(f"b = {b}")
 
-alfa = 10**-5
-# alfa = 0
+# alfa = 10**-5
+alfa = 0
 ones = np.eye(len(A))
 regularizedA = A + np.dot(alfa, ones)
 p = np.linalg.solve(regularizedA, b)
